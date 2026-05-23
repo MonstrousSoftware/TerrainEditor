@@ -16,10 +16,7 @@ public class GUI {
     public TerrainEditor main;
     public Terrain terrain;
 
-    public boolean showHeightmap = false;
-
     public boolean freezeLoD = false;
-    public boolean showTerrain = true;
     public boolean showWireFrame = false;
     public boolean culling = true;
 //    public boolean showCameraPath = false;
@@ -75,24 +72,24 @@ public class GUI {
         // show heightmap
         //
         final CheckBox checkbox = new CheckBox("show map", skin);
-        checkbox.setChecked(showHeightmap);
+        checkbox.setChecked(main.showHeightmap);
         checkbox.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                showHeightmap = checkbox.isChecked();
+                main.showHeightmap = checkbox.isChecked();
              }
         });
         controls.add(checkbox).left().row();
 
-        final CheckBox terrainCheckbox = new CheckBox("show terrain", skin);
-        terrainCheckbox.setChecked(showTerrain);
-        terrainCheckbox.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeEvent event, Actor actor) {
-                showTerrain = terrainCheckbox.isChecked();
-            }
-        });
-        controls.add(terrainCheckbox).left().row();
+//        final CheckBox terrainCheckbox = new CheckBox("show terrain", skin);
+//        terrainCheckbox.setChecked(showTerrain);
+//        terrainCheckbox.addListener(new ChangeListener() {
+//            @Override
+//            public void changed(ChangeEvent event, Actor actor) {
+//                showTerrain = terrainCheckbox.isChecked();
+//            }
+//        });
+//        controls.add(terrainCheckbox).left().row();
 
 
         final CheckBox linesCheckbox = new CheckBox("wire frame", skin);
@@ -169,7 +166,7 @@ public class GUI {
                 amplitude = ampSlider.getValue();
                 ampLabel.setText(String.valueOf((int)amplitude));
                 terrain.setAmplitude(amplitude);
-                main.generateVegetation(terrain);
+                main.vegetation.placeVegetation();
 
             }
         });
@@ -191,8 +188,7 @@ public class GUI {
                 scale = scaleSlider.getValue();
                 scaleLabel.setText(String.valueOf(scale));
                 terrain.setScale(scale);
-                main.generateVegetation(terrain);
-
+                main.vegetation.placeVegetation();
             }
         });
 

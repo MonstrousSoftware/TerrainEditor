@@ -24,11 +24,12 @@ public class TerrainEditor extends ApplicationAdapter {
 	public SpriteBatch batch;
 	public GUI gui;
     public Terrain terrain;
-    private Model cube;
+
     private ModelBatch modelBatch;
 	private float time;
     private CameraLoop camLoop;
-    private Array<ModelInstance> vegetation;   // to show placement at terrain height
+    public Vegetation vegetation;
+    public boolean showHeightmap = false;
     public boolean showCameraPath = false;
     public boolean flyCamera = false;
 
@@ -36,11 +37,9 @@ public class TerrainEditor extends ApplicationAdapter {
 	@Override
 	public void create() {
         terrain = new Terrain(255, 7, 32f);
+        vegetation = new Vegetation(terrain);
 
         gui = new GUI(this, terrain);
-
-
-        generateVegetation(terrain);
 
 		// create perspective camera
 		cam = new PerspectiveCamera(70, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
@@ -98,22 +97,21 @@ public class TerrainEditor extends ApplicationAdapter {
 //        if(height + 10f > cam.position.y)
 //            cam.position.y = height + 10f;
 
-        if(!gui.freezeLoD && gui.showTerrain)
+        if(!gui.freezeLoD )
             terrain.update(cam);
 
 		// clear screen
         ScreenUtils.clear(Color.SKY, true);
 
-        if(gui.showTerrain)
-            terrain.render(cam, environment);
+        terrain.render(cam, environment);
 
         if(showCameraPath)
 		    camLoop.renderPath();
 
         // enable this to demonstrate we can get accurate terrain height by placing blocks on the terrain
-        //renderVegetation();
+        vegetation.render(cam);
 
-		if (gui.showHeightmap) {
+		if (showHeightmap) {
 			batch.begin();
 			batch.draw(terrain.getHeightMapTexture(), Gdx.graphics.getWidth()-256, Gdx.graphics.getHeight()-256, 256, 256);
 			batch.end();
@@ -126,36 +124,9 @@ public class TerrainEditor extends ApplicationAdapter {
 		batch.dispose();
         terrain.dispose();
         gui.dispose();
-        cube.dispose();
+        vegetation.dispose();
         modelBatch.dispose();
 	}
-
-
-    // randomly place little cubes on the terrain to demonstrate we can get terrain height correctly
-    // call again whenever terrain scale or amplitude is changed
-    public void generateVegetation(Terrain terrain){
-        ModelBuilder builder = new ModelBuilder();
-        float SZ = 250f;
-        cube = builder.createBox(SZ, SZ, SZ, new Material(ColorAttribute.createDiffuse(Color.BROWN)),
-            VertexAttributes.Usage.Position | VertexAttributes.Usage.Normal);
-
-        final int N = 1000;
-        final float worldSize = terrain.heightMap.getSize() * terrain.getScale();
-        vegetation = new Array<>();
-
-        for(int i = 0; i < N; i++){
-            float x = ((float)Math.random() -0.5f) * worldSize;
-            float z = ((float)Math.random() -0.5f) * worldSize;
-            float h = 5f + terrain.getHeight(x*0.9f, z*0.9f);
-            vegetation.add( new ModelInstance(cube, x*0.9f, h, z*0.9f));
-        }
-    }
-
-    private void renderVegetation(){
-        modelBatch.begin(cam);
-        modelBatch.render(vegetation);
-        modelBatch.end();
-    }
 
 
 
