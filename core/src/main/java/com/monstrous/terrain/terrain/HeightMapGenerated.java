@@ -24,6 +24,8 @@ public class HeightMapGenerated implements HeightMap, Disposable {
         noise = new Noise();
         // generate a noise map
         heightMap = noise.generateSmoothedPerlinMap(mapSize, mapSize, 0,0, PERLIN_GRID_SIZE);
+        Pixmap pixmap = noise.generatePixmap(heightMap, mapSize);
+        heightMapTexture = new Texture(pixmap);
     }
 
     @Override

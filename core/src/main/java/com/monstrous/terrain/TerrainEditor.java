@@ -15,6 +15,9 @@ import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.monstrous.terrain.gui.GUI;
+import com.monstrous.terrain.terrain.HeightMap;
+import com.monstrous.terrain.terrain.HeightMapFromFile;
+import com.monstrous.terrain.terrain.HeightMapGenerated;
 import com.monstrous.terrain.terrain.Terrain;
 
 public class TerrainEditor extends ApplicationAdapter {
@@ -24,6 +27,7 @@ public class TerrainEditor extends ApplicationAdapter {
 	public SpriteBatch batch;
 	public GUI gui;
     public Terrain terrain;
+    public HeightMap heightMap;
 
     private ModelBatch modelBatch;
 	private float time;
@@ -36,14 +40,17 @@ public class TerrainEditor extends ApplicationAdapter {
 
 	@Override
 	public void create() {
-        terrain = new Terrain(255, 7, 32f);
+        heightMap = new HeightMapGenerated(2048);
+        //heightMap = new HeightMapFromFile(Gdx.files.internal("terrain/everest_2048_2048_8bit.png"));
+
+        terrain = new Terrain(heightMap,255, 7, 32f);
         vegetation = new Vegetation(terrain);
 
         gui = new GUI(this, terrain);
 
 		// create perspective camera
 		cam = new PerspectiveCamera(70, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-		cam.position.set(0, 20000, 0);
+		cam.position.set(0, 50000, 0);
 		cam.lookAt(0, 0, 0);
         // far distance is world distance of diagonal over height map
 		cam.far =  terrain.heightMap.getSize() * terrain.getScale();

@@ -35,6 +35,7 @@ public class GUI {
     private float clipMapScale;
     private Label levelsLabel;
     private Label clipMapScaleLabel;
+    private TerrainWindow terrainWindow;
 
 
     public GUI (TerrainEditor main, Terrain terrain ) {
@@ -92,17 +93,17 @@ public class GUI {
 //        controls.add(terrainCheckbox).left().row();
 
 
-        final CheckBox linesCheckbox = new CheckBox("wire frame", skin);
-        linesCheckbox.setChecked(showWireFrame);
-        linesCheckbox.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeEvent event, Actor actor) {
-                showWireFrame = linesCheckbox.isChecked();
-                terrain.setWireFrameMode(showWireFrame);
-                terrain.generateBlocks();
-            }
-        });
-        controls.add(linesCheckbox).left().row();
+//        final CheckBox linesCheckbox = new CheckBox("wire frame", skin);
+//        linesCheckbox.setChecked(showWireFrame);
+//        linesCheckbox.addListener(new ChangeListener() {
+//            @Override
+//            public void changed(ChangeEvent event, Actor actor) {
+//                showWireFrame = linesCheckbox.isChecked();
+//                terrain.setWireFrameMode(showWireFrame);
+//                terrain.generateBlocks();
+//            }
+//        });
+//        controls.add(linesCheckbox).left().row();
 
         final CheckBox freezeCheckbox = new CheckBox("freeze Level of Detail", skin);
         freezeCheckbox.setChecked(freezeLoD);
@@ -150,26 +151,26 @@ public class GUI {
 
 
         // amplitude
-        amplitude = terrain.getAmplitude();
-        final Slider ampSlider = new Slider(0f, 50000f, 100f, false, skin);
-        ampSlider.setAnimateDuration(0.1f);
-        ampSlider.setValue(amplitude);
-        ampSlider.setSize(150, 20);
-        controls.add(new Label("amplitude", skin));
-        controls.add(ampSlider);
-
-        ampLabel = new Label(String.valueOf(amplitude), skin);
-        controls.add(ampLabel).row();
-        ampSlider.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeEvent event, Actor actor) {
-                amplitude = ampSlider.getValue();
-                ampLabel.setText(String.valueOf((int)amplitude));
-                terrain.setAmplitude(amplitude);
-                main.vegetation.placeVegetation();
-
-            }
-        });
+//        amplitude = terrain.getAmplitude();
+//        final Slider ampSlider = new Slider(0f, 50000f, 100f, false, skin);
+//        ampSlider.setAnimateDuration(0.1f);
+//        ampSlider.setValue(amplitude);
+//        ampSlider.setSize(150, 20);
+//        controls.add(new Label("amplitude", skin));
+//        controls.add(ampSlider);
+//
+//        ampLabel = new Label(String.valueOf(amplitude), skin);
+//        controls.add(ampLabel).row();
+//        ampSlider.addListener(new ChangeListener() {
+//            @Override
+//            public void changed(ChangeEvent event, Actor actor) {
+//                amplitude = ampSlider.getValue();
+//                ampLabel.setText(String.valueOf((int)amplitude));
+//                terrain.setAmplitude(amplitude);
+//                main.vegetation.placeVegetation();
+//
+//            }
+//        });
 
         // scale
         scale = terrain.getScale();
@@ -355,7 +356,10 @@ public class GUI {
 //        yy-= 30;
 //
 
-
+        terrainWindow = new TerrainWindow(main.terrain, main, skin);
+        terrainWindow.setY(stage.getHeight() - terrainWindow.getHeight());
+        terrainWindow.setX(stage.getWidth() - terrainWindow.getWidth());
+        stage.addActor(terrainWindow);
 
     }
 

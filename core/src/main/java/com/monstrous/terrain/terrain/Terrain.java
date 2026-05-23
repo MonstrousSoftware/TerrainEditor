@@ -34,6 +34,7 @@ public class Terrain implements Disposable {
     private final TerrainShader terrainShader;
     private float amplitude;
     private float scale;        // world scale of one height map tile (not clip map tile)
+    private float altitude = 0;
 
     /** Construct terrain.
      *
@@ -41,15 +42,15 @@ public class Terrain implements Disposable {
      * @param numLevels number of LoD levels, i.e. concentric rings
      * @param tileSize size of a single tile in world units
      */
-    public Terrain(int clipMapSize, int numLevels, float tileSize) {
+    public Terrain(HeightMap heightMap, int clipMapSize, int numLevels, float tileSize) {
 
-
+        this.heightMap = heightMap;
         this.scale = 64;    // hmm...
         this.amplitude = 25600;
         this.wireFrameMode = false;
 
         //heightMap = new HeightMapGenerated(2048); //clipMapSize+1);
-        heightMap = new HeightMapFromFile(Gdx.files.internal("terrain/everest_2048_2048_8bit.png"));
+       // heightMap = new HeightMapFromFile(Gdx.files.internal("terrain/everest_2048_2048_8bit.png"));
 
 
         setClipMapParameters(clipMapSize, numLevels, tileSize);
@@ -107,6 +108,20 @@ public class Terrain implements Disposable {
 
     public float getAmplitude() {
         return amplitude;
+    }
+
+    public float getAltitude() {
+        return altitude;
+    }
+
+    public void setAltitude(float altitude) {
+        this.altitude = altitude;
+        Vector3 pos = new Vector3();
+        for(TerrainElement el : elements){
+            el.modelInstance.transform.getTranslation(pos);
+            pos.y = altitude;
+            el.modelInstance.transform.setTranslation(pos);
+        }
     }
 
     public void setScale(float scale) {
@@ -344,7 +359,7 @@ public class Terrain implements Disposable {
      * */
     private void addSquare(Array<TerrainElement> elements, Model model, float scale, int w, int h, float xo, float zo, int x, int z){
         ModelInstance instance = new ModelInstance(model);
-        instance.transform.translate(xo + x * scale, 0, zo + z*scale);
+        instance.transform.translate(xo + x * scale, altitude, zo + z*scale);
         instance.transform.scale(scale, 1f, scale);
         BoundingBox bbox = new BoundingBox();
 
