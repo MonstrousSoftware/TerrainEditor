@@ -45,7 +45,7 @@ public class HeightMapFromFile implements HeightMap, Disposable {
     }
 
     /** get height at position (u, v). Coordinates must be in range [0.0 to 1.0].
-     * Height will be in range [-0 .. 1], scale appropriately*/
+     * Height will be in range [0 .. 1], scale appropriately*/
     public float get(float u, float v){
         int x = Math.round(u * mapSize);
         int z = Math.round(v * mapSize);

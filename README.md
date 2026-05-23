@@ -9,6 +9,16 @@ This project was generated with a template including simple application launcher
 
 Derived from ClipMappingTerrain project.
 
+Using a Perlin noise height map for now.
+
+To do: 
+- Normals. note that the meshes are reused due to the clipmapping so you cannot use
+normal attributes of the mesh. Use a normal map?
+
+note: height map image file has height in alpha channel, perlin noise has it in color component.
+Adapt the shader accordingly.
+
+
 
 ## Platforms
 

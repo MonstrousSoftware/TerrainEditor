@@ -146,9 +146,9 @@ public class Terrain implements Disposable {
         final int M = (N+1)/4;
         final int primitive = wireFrameMode ? GL20.GL_LINES : GL20.GL_TRIANGLES;
 
-        Texture diffuseTexture  = new Texture(Gdx.files.internal("terrain/everest_2048_2048_albedo_topo.png"), true);
-        diffuseTexture.setFilter(Texture.TextureFilter.MipMapLinearLinear, Texture.TextureFilter.Linear);
-        diffuseTexture.setWrap(Texture.TextureWrap.ClampToEdge, Texture.TextureWrap.ClampToEdge);
+        Texture diffuseTexture  = new Texture(Gdx.files.internal("textures/sand.png"), true);
+        diffuseTexture.setFilter(Texture.TextureFilter.MipMapLinearLinear, Texture.TextureFilter.MipMapLinearNearest);
+        diffuseTexture.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat);
 
         Material mat = new Material(
             TextureAttribute.createDiffuse(diffuseTexture),
@@ -363,9 +363,9 @@ public class Terrain implements Disposable {
         instance.transform.scale(scale, 1f, scale);
         BoundingBox bbox = new BoundingBox();
 
-        min.set(xo + x * scale, 0, zo + z*scale);
+        min.set(xo + x * scale, altitude, zo + z*scale);
         max.set(min);
-        max.add(scale * (w-1), amplitude, scale*(h-1));
+        max.add(scale * (w-1), altitude+amplitude, scale*(h-1));
         bbox.set(min, max);
         elements.add(new TerrainElement(instance, bbox));
     }

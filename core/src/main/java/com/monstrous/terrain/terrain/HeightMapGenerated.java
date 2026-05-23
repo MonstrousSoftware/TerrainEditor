@@ -9,7 +9,7 @@ import com.badlogic.gdx.utils.Disposable;
 // BROKEN?
 
 public class HeightMapGenerated implements HeightMap, Disposable {
-    final int PERLIN_GRID_SIZE = 16;
+    final int PERLIN_GRID_SIZE = 360;
 
     public int mapSize;
     private float[][] heightMap;

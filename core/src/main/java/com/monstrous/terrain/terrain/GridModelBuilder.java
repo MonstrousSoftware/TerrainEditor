@@ -52,16 +52,17 @@ public class GridModelBuilder {
             }
         }
 
-
+        float uvScale = 0.01f;
         // and pass vertex to meshBuilder
         MeshPartBuilder.VertexInfo vert = new MeshPartBuilder.VertexInfo();
         vert.hasColor = false;
         vert.hasNormal = false;
         vert.hasPosition = true;
-        vert.hasUV = false;
+        vert.hasUV = true;
 
         for (int i = 0; i < numVerts; i++) {
             vert.position.set(vertices[i]);
+            vert.uv.set(vert.position.x*uvScale, vert.position.z*uvScale);
             meshBuilder.vertex(vert);
         }
 
