@@ -173,7 +173,7 @@ public class Noise {
                 pixmap.getPixels().put(idx++, val);
                 pixmap.getPixels().put(idx++, val);
                 pixmap.getPixels().put(idx++, val);
-                pixmap.getPixels().put(idx++, (byte) 255);
+                pixmap.getPixels().put(idx++, val);
             }
         }
         return pixmap;

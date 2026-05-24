@@ -6,7 +6,9 @@ import com.badlogic.gdx.graphics.g3d.Renderable;
 import com.badlogic.gdx.graphics.g3d.shaders.DefaultShader;
 import com.badlogic.gdx.graphics.g3d.utils.RenderContext;
 
-/** By creating a dedicated TerrainShade class we can add some relevant uniforms */
+/** By creating a dedicated TerrainShade class we can add some relevant uniforms
+ * Note: emissiveTexture is used to pass height map to vertex shader.
+ * */
 public class TerrainShader extends DefaultShader {
     // terrain parameters
     private int heightMapSize;  // dimension of height map in vertices per side

@@ -4,7 +4,10 @@ package com.monstrous.terrain.terrain;
 
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Disposable;
+
+import java.nio.ByteBuffer;
 
 // BROKEN?
 
@@ -25,6 +28,7 @@ public class HeightMapGenerated implements HeightMap, Disposable {
         // generate a noise map
         heightMap = noise.generateSmoothedPerlinMap(mapSize, mapSize, 0,0, PERLIN_GRID_SIZE);
         Pixmap pixmap = noise.generatePixmap(heightMap, mapSize);
+        addNormals(pixmap);
         heightMapTexture = new Texture(pixmap);
     }
 
@@ -54,10 +58,81 @@ public class HeightMapGenerated implements HeightMap, Disposable {
         return heightMap[z][x];
     }
 
+    public float getFromIndex(int x, int z){
+        return heightMap[z][x];
+    }
+
     @Override
     public void dispose() {
         if(heightMapTexture != null)
             heightMapTexture.dispose();
     }
 
+    /** use heights in alpha channel to calculate normals and store those in RBG channels */
+    public void addNormals(Pixmap pixmap){
+        final int numVertices = mapSize * mapSize;
+        Vector3[] vertices = new Vector3[numVertices];
+        Vector3[] normals = new Vector3[numVertices];
+        Vector3 pos = new Vector3();
+
+        for (int z = 0; z < mapSize; z++) {
+            for (int x = 0; x < mapSize; x++) {
+                float wx = x/(float)mapSize;      // scale to [0..1]
+                float wz = z/(float)mapSize;
+                float height =  getFromIndex(x, z);
+                pos.set(x , height, z );
+                vertices[z * mapSize+ x] = new Vector3(pos);
+                normals[z * mapSize + x] = new Vector3(Vector3.Zero);
+            }
+            if (z >= 1) {
+                // add to index list to make a row of triangles using vertices at y and y-1
+                int v0 = ((z - 1) * mapSize);    // vertex number at top left of this row
+                for (short t = 0; t < mapSize-1; t++) {
+                    // counter-clockwise winding
+                    calcNormal(vertices, normals, v0, v0 + mapSize, v0 + 1);
+                    calcNormal(vertices, normals, v0 + 1, v0 + mapSize, v0 + mapSize + 1);
+                    v0++;                // next column
+                }
+            }
+        }
+
+        ByteBuffer bb = pixmap.getPixels();
+        bb.clear();
+        int idx = 0;
+        for(int i = 0; i < mapSize*mapSize; i++){
+            bb.put(idx++, floatToByte(normals[i].x));
+            bb.put(idx++, floatToByte(normals[i].y));
+            bb.put(idx++, floatToByte(normals[i].z));
+            bb.put(idx++, floatToByte(vertices[i].y));
+        }
+        //pixmap.setPixels(bb);
+
+    }
+
+
+    private byte floatToByte(float u){
+        return (byte) (u*255);
+    }
+
+    /*
+     * Calculate the normal
+     */
+    private static Vector3 u = new Vector3();
+    private static Vector3 v = new Vector3();
+    private static Vector3 n = new Vector3();
+
+    private static void calcNormal(final Vector3[] vertices, Vector3[] normals, int v0, int v1, int v2) {
+
+        final Vector3 p0 = vertices[v0];
+        final Vector3 p1 = vertices[v1];
+        final Vector3 p2 = vertices[v2];
+
+        v.set(p2).sub(p1);
+        u.set(p0).sub(p1);
+        n.set(v).crs(u).nor();
+
+        normals[v0].add(n);
+        normals[v1].add(n);
+        normals[v2].add(n);
+    }
 }

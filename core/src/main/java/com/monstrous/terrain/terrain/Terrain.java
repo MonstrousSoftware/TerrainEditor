@@ -370,6 +370,28 @@ public class Terrain implements Disposable {
         elements.add(new TerrainElement(instance, bbox));
     }
 
+    /*
+     * Calculate the normal
+     */
+    private static Vector3 u = new Vector3();
+    private static Vector3 v = new Vector3();
+    private static Vector3 n = new Vector3();
+
+    private static void calcNormal(final Vector3[] vertices, Vector3[] normals, short v0, short v1, short v2) {
+
+        final Vector3 p0 = vertices[v0];
+        final Vector3 p1 = vertices[v1];
+        final Vector3 p2 = vertices[v2];
+
+        v.set(p2).sub(p1);
+        u.set(p0).sub(p1);
+        n.set(v).crs(u).nor();
+
+        normals[v0].add(n);
+        normals[v1].add(n);
+        normals[v2].add(n);
+    }
+
     @Override
     public void dispose() {
         heightMap.dispose();
