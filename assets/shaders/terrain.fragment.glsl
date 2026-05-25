@@ -11,7 +11,7 @@ varying float v_fog;
 varying float v_lightDiffuse;
 
 void main() {
-    vec4 diffuse = texture2D(u_diffuseTexture, v_diffuseUV);
+    vec4 diffuse = vec4(1); //texture2D(u_diffuseTexture, v_diffuseUV);
 
     //vec3 normalVector = texture2D(u_normalTexture, v_diffuseUV).xyz;
 

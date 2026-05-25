@@ -13,7 +13,7 @@ import java.nio.ByteBuffer;
 // BROKEN?
 
 public class HeightMapGenerated implements HeightMap, Disposable {
-    final int PERLIN_GRID_SIZE = 360;
+    final int PERLIN_GRID_SIZE = 560;
 
     public int mapSize;
     private float[][] heightMap;
@@ -33,12 +33,12 @@ public class HeightMapGenerated implements HeightMap, Disposable {
         Pixmap pixmap = noise.generatePixmap(heightMap, mapSize);
         heightMapTexture = new Texture(pixmap);
 
-//        normalsPixmap = new Pixmap(mapSize, mapSize, Pixmap.Format.RGB888);
-//        generateNormalMap(normalsPixmap);
-//
-//        normalTexture = new Texture(normalsPixmap);
+        normalsPixmap = new Pixmap(mapSize, mapSize, Pixmap.Format.RGB888);
+        generateNormalMap(normalsPixmap);
 
-        normalTexture = new Texture(Gdx.files.internal("normalMap.png"));
+        normalTexture = new Texture(normalsPixmap);
+
+//        normalTexture = new Texture(Gdx.files.internal("normalMap.png"));
     }
 
     @Override
@@ -93,8 +93,6 @@ public class HeightMapGenerated implements HeightMap, Disposable {
 
         for (int z = 0; z < mapSize; z++) {
             for (int x = 0; x < mapSize; x++) {
-                float wx = x/(float)mapSize;      // scale to [0..1]
-                float wz = z/(float)mapSize;
                 float height =  getFromIndex(x, z) * amplitude;
                 pos.set(x*horizontalScale , height, z*horizontalScale );
                 vertices[z * mapSize+ x] = new Vector3(pos);
@@ -112,24 +110,36 @@ public class HeightMapGenerated implements HeightMap, Disposable {
             }
         }
 
-        ByteBuffer bb = pixmap.getPixels();
-        bb.clear();
-        int idx = 0;
-        for(int i = 0; i < mapSize*mapSize; i++){
-            normals[i].nor();
-            bb.put(idx++, floatToByte(normals[i].x));
-            bb.put(idx++, floatToByte(normals[i].y));
-            bb.put(idx++, floatToByte(normals[i].z));
-            //idx++;
-            //bb.put(idx++, (byte)255);
+
+
+        for(int z = 0; z < mapSize; z++) {
+            for(int x = 0; x < mapSize; x++) {
+                int i = z*mapSize + x;
+                normals[i].nor().scl(0.5f).add(0.5f, 0.5f, 0.5f);
+                pixmap.setColor(normals[i].x, normals[i].y, normals[i].z, 1.0f);
+                pixmap.drawPixel(mapSize-x,mapSize-z);
+            }
         }
-        //pixmap.setPixels(bb);
+
+
+        //        ByteBuffer bb = pixmap.getPixels();
+//        bb.clear();
+//        int idx = 0;
+//        for(int i = 0; i < mapSize*mapSize; i++){
+//            normals[i].nor();
+//            bb.put(idx++, floatToByte(normals[i].x));
+//            bb.put(idx++, floatToByte(normals[i].y));
+//            bb.put(idx++, floatToByte(normals[i].z));
+//            //idx++;
+//            //bb.put(idx++, (byte)255);
+//        }
+//        //pixmap.setPixels(bb);
 
     }
 
 
     private byte floatToByte(float u){
-        byte b =  (byte) ((int)(u*128f)&0xFF);
+        byte b =  (byte) (u*128f);
         return b;
     }
 

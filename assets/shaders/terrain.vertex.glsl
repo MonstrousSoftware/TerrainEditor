@@ -32,9 +32,10 @@ void main() {
     v_diffuseUV = UV;
 
     //vec3 normalVector = normalize(vec3(sin(UV.x*10), 2.0, cos(UV.y*5)));
-    vec3 normalVector = normalize(texture2D(u_normalTexture, UV).rbg);
+    vec3 normalVector = normalize(texture2D(u_normalTexture, UV).rgb);
     normalVector = normalize(2.0 * normalVector - 1.0);
-    vec3 lightDir = normalize(vec3(sin(u_time), 1.0, cos(u_time)));
+    //vec3 lightDir = normalize(vec3(sin(u_time), 1.0, cos(u_time)));
+    vec3 lightDir = normalize(vec3(0.3, 1.0, -0.2));
     v_lightDiffuse = clamp(dot(lightDir, normalVector), 0.0, 1.0);
 
 	worldPos.y = u_amplitude * heightSample;
