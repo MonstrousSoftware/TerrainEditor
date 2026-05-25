@@ -115,9 +115,10 @@ public class HeightMapGenerated implements HeightMap, Disposable {
         for(int z = 0; z < mapSize; z++) {
             for(int x = 0; x < mapSize; x++) {
                 int i = z*mapSize + x;
+                // scale from [-1 to 1] to [0 to 1]
                 normals[i].nor().scl(0.5f).add(0.5f, 0.5f, 0.5f);
                 pixmap.setColor(normals[i].x, normals[i].y, normals[i].z, 1.0f);
-                pixmap.drawPixel(mapSize-x,mapSize-z);
+                pixmap.drawPixel(x,z);  // flip?
             }
         }
 
