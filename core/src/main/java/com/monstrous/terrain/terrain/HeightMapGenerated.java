@@ -2,18 +2,17 @@ package com.monstrous.terrain.terrain;
 
 
 
-import com.badlogic.gdx.Gdx;
+
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Disposable;
-
 import java.nio.ByteBuffer;
 
-// BROKEN?
+
 
 public class HeightMapGenerated implements HeightMap, Disposable {
-    final int PERLIN_GRID_SIZE = 560;
+    final int PERLIN_GRID_SIZE = 256;
 
     public int mapSize;
     private float[][] heightMap;
@@ -82,7 +81,7 @@ public class HeightMapGenerated implements HeightMap, Disposable {
             heightMapTexture.dispose();
     }
 
-    /** use heights to calculate normals and store those in RBG channels */
+    /** use heights to calculate normals and store those in RGB channels */
     public void generateNormalMap(Pixmap pixmap){
         final int numVertices = mapSize * mapSize;
         Vector3[] vertices = new Vector3[numVertices];
@@ -118,7 +117,7 @@ public class HeightMapGenerated implements HeightMap, Disposable {
                 // scale from [-1 to 1] to [0 to 1]
                 normals[i].nor().scl(0.5f).add(0.5f, 0.5f, 0.5f);
                 pixmap.setColor(normals[i].x, normals[i].y, normals[i].z, 1.0f);
-                pixmap.drawPixel(x,z);  // flip?
+                pixmap.drawPixel(z, x);  // z and x need to be reversed
             }
         }
 

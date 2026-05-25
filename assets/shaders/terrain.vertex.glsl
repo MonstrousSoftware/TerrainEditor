@@ -19,6 +19,7 @@ varying vec2 v_diffuseUV;
 varying float v_fog;
 varying float v_lightDiffuse;
 
+
 void main() {
 	vec4 worldPos = u_worldTrans * a_position;
 
@@ -29,11 +30,12 @@ void main() {
     //float heightSample = (UV.x < 0.0 || UV.x > 1.0 || UV.y < 0.0 || UV.y > 1.0) ? 0.0 : texture2D(u_emissiveTexture, UV).r;
     float heightSample = texture2D(u_emissiveTexture, UV).r;
 
-    v_diffuseUV = UV;
+    v_diffuseUV = UV*64.0;
 
     //vec3 normalVector = normalize(vec3(sin(UV.x*10), 2.0, cos(UV.y*5)));
     vec3 normalVector = normalize(texture2D(u_normalTexture, UV).rgb);
     normalVector = normalize(2.0 * normalVector - 1.0);
+
     //vec3 lightDir = normalize(vec3(sin(u_time), 1.0, cos(u_time)));
     vec3 lightDir = normalize(vec3(0.3, 1.0, -0.2));
     v_lightDiffuse = clamp(dot(lightDir, normalVector), 0.0, 1.0);

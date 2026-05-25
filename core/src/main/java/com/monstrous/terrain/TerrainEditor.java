@@ -42,7 +42,7 @@ public class TerrainEditor extends ApplicationAdapter {
 
 	@Override
 	public void create() {
-        heightMap = new HeightMapGenerated(2048);
+        heightMap = new HeightMapGenerated(1024);
         //heightMap = new HeightMapFromFile(Gdx.files.internal("terrain/everest_2048_2048_8bit.png"));
 
         terrain = new Terrain(heightMap,255, 3, 320f);
@@ -56,7 +56,7 @@ public class TerrainEditor extends ApplicationAdapter {
 		cam.position.set(0, 30000, 30000);
 		cam.lookAt(0, 0, 0);
         // far distance is world distance of diagonal over height map
-		cam.far =  500000; //terrain.heightMap.getSize() * terrain.getScale();
+		cam.far =  250000; //terrain.heightMap.getSize() * terrain.getScale();
 		cam.near = 0.1f;
 		cam.update();
 
@@ -106,10 +106,10 @@ public class TerrainEditor extends ApplicationAdapter {
 
         float delta = Gdx.graphics.getDeltaTime();
 		time += delta;
-//        if(flyCamera)
-//		    camLoop.moveCameraAlongSpline(time);
-//        else
-//            cam.lookAt(0, 0, 0);
+        if(flyCamera)
+		    camLoop.moveCameraAlongSpline(time);
+        else
+            cam.lookAt(0, 0, 0);
 
 
 
