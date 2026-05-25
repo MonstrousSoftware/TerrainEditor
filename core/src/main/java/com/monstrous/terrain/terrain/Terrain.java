@@ -1,10 +1,9 @@
 package com.monstrous.terrain.terrain;
 
 import com.badlogic.gdx.Gdx;
-import com.badlogic.gdx.graphics.Camera;
-import com.badlogic.gdx.graphics.GL20;
-import com.badlogic.gdx.graphics.Texture;
+import com.badlogic.gdx.graphics.*;
 import com.badlogic.gdx.graphics.g3d.*;
+import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
 import com.badlogic.gdx.graphics.g3d.utils.DefaultShaderProvider;
 import com.badlogic.gdx.math.Vector3;
@@ -22,6 +21,7 @@ public class Terrain implements Disposable {
     public HeightMap heightMap;
     public final Array<TerrainElement> elements = new Array<>();
     private final Array<ModelInstance> instances = new Array<>();
+    private final Texture whitePixel;
     private Model squareMxM;
     private Model fillerMX3;
     private Model filler3XM;
@@ -44,14 +44,14 @@ public class Terrain implements Disposable {
      */
     public Terrain(HeightMap heightMap, int clipMapSize, int numLevels, float tileSize) {
 
+        double log = Math.log(clipMapSize+1)/Math.log(2.0);
+        if(log - (int)log > 0.01f)
+            Gdx.app.error("Terrain", "clipMapSize must be 2^N -1");
+
         this.heightMap = heightMap;
         this.scale = 64;    // hmm...
-        this.amplitude = 25600;
+        this.amplitude = 15000;   // multiplier for HeighMap [0..1] values
         this.wireFrameMode = false;
-
-        //heightMap = new HeightMapGenerated(2048); //clipMapSize+1);
-       // heightMap = new HeightMapFromFile(Gdx.files.internal("terrain/everest_2048_2048_8bit.png"));
-
 
         setClipMapParameters(clipMapSize, numLevels, tileSize);
 
@@ -68,6 +68,12 @@ public class Terrain implements Disposable {
                 return terrainShader;
             }
         });
+
+        // fallback texture for wireframe rendering
+        Pixmap pm = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
+        pm.setColor(Color.WHITE);
+        pm.fill();
+        whitePixel = new Texture(pm);
     }
 
     public void setWireFrameMode(boolean mode){
@@ -146,10 +152,14 @@ public class Terrain implements Disposable {
         final int M = (N+1)/4;
         final int primitive = wireFrameMode ? GL20.GL_LINES : GL20.GL_TRIANGLES;
 
-        Texture diffuseTexture  = new Texture(Gdx.files.internal("textures/sand.png"), true);
+        Texture diffuseTexture;
+        if(wireFrameMode){
+            diffuseTexture = whitePixel;
+        } else {
+            diffuseTexture = new Texture(Gdx.files.internal("textures/sand.png"), true);
+        }
         diffuseTexture.setFilter(Texture.TextureFilter.MipMapLinearLinear, Texture.TextureFilter.MipMapLinearNearest);
         diffuseTexture.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat);
-
         Material mat = new Material(
             TextureAttribute.createDiffuse(diffuseTexture),
             TextureAttribute.createEmissive(heightMap.getHeightMapTexture())    // misuse "emissive texture" for height map
@@ -359,13 +369,13 @@ public class Terrain implements Disposable {
      * */
     private void addSquare(Array<TerrainElement> elements, Model model, float scale, int w, int h, float xo, float zo, int x, int z){
         ModelInstance instance = new ModelInstance(model);
-        instance.transform.translate(xo + x * scale, altitude, zo + z*scale);
+        instance.transform.translate(xo + x * scale, 0, zo + z*scale);
         instance.transform.scale(scale, 1f, scale);
         BoundingBox bbox = new BoundingBox();
 
-        min.set(xo + x * scale, altitude, zo + z*scale);
+        min.set(xo + x * scale, 0, zo + z*scale);
         max.set(min);
-        max.add(scale * (w-1), altitude+amplitude, scale*(h-1));
+        max.add(scale * (w-1), amplitude, scale*(h-1));
         bbox.set(min, max);
         elements.add(new TerrainElement(instance, bbox));
     }
@@ -397,6 +407,7 @@ public class Terrain implements Disposable {
         heightMap.dispose();
         disposeBlocks();
         terrainBatch.dispose();
+        whitePixel.dispose();
     }
 
     private void disposeBlocks() {

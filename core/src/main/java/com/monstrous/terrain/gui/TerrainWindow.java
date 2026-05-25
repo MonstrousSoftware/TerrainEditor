@@ -78,23 +78,24 @@ public class TerrainWindow extends Window {
         });
 
 
-        // altitude
-        final Slider altSlider = new Slider(-10000f, 10000f, 1f, false, skin);
-        altSlider.setAnimateDuration(0.1f);
-        altSlider.setValue(terrain.getAltitude());
-        altSlider.setSize(150, 20);
-        controls.add(new Label("terrain altitude", skin)).left();
-        controls.add(altSlider);
-
-        Label altLabel = new Label(String.valueOf((int) terrain.getAltitude()), skin);
-        controls.add(altLabel).row();
-        altSlider.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeEvent event, Actor actor) {
-                terrain.setAltitude(altSlider.getValue());
-                altLabel.setText(String.valueOf((int) terrain.getAltitude()));
-            }
-        });
+        // broken
+//        // altitude
+//        final Slider altSlider = new Slider(-10000f, 10000f, 1f, false, skin);
+//        altSlider.setAnimateDuration(0.1f);
+//        altSlider.setValue(terrain.getAltitude());
+//        altSlider.setSize(150, 20);
+//        controls.add(new Label("terrain altitude", skin)).left();
+//        controls.add(altSlider);
+//
+//        Label altLabel = new Label(String.valueOf((int) terrain.getAltitude()), skin);
+//        controls.add(altLabel).row();
+//        altSlider.addListener(new ChangeListener() {
+//            @Override
+//            public void changed(ChangeEvent event, Actor actor) {
+//                terrain.setAltitude(altSlider.getValue());
+//                altLabel.setText(String.valueOf((int) terrain.getAltitude()));
+//            }
+//        });
 
 
 

@@ -28,11 +28,13 @@ public class TerrainEditor extends ApplicationAdapter {
 	public GUI gui;
     public Terrain terrain;
     public HeightMap heightMap;
-
+    private Model xyzModel;
+    private ModelInstance xyzInstance;
     private ModelBatch modelBatch;
-	private float time;
     private CameraLoop camLoop;
     public Vegetation vegetation;
+    private float time;
+
     public boolean showHeightmap = false;
     public boolean showCameraPath = false;
     public boolean flyCamera = false;
@@ -43,25 +45,26 @@ public class TerrainEditor extends ApplicationAdapter {
         heightMap = new HeightMapGenerated(2048);
         //heightMap = new HeightMapFromFile(Gdx.files.internal("terrain/everest_2048_2048_8bit.png"));
 
-        terrain = new Terrain(heightMap,255, 7, 32f);
+        terrain = new Terrain(heightMap,255, 3, 320f);
         vegetation = new Vegetation(terrain);
 
         gui = new GUI(this, terrain);
 
 		// create perspective camera
 		cam = new PerspectiveCamera(70, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
-		cam.position.set(0, 50000, 0);
+
+		cam.position.set(0, 30000, 30000);
 		cam.lookAt(0, 0, 0);
         // far distance is world distance of diagonal over height map
-		cam.far =  terrain.heightMap.getSize() * terrain.getScale();
-		cam.near = 10f;
+		cam.far =  500000; //terrain.heightMap.getSize() * terrain.getScale();
+		cam.near = 0.1f;
 		cam.update();
 
         camLoop = new CameraLoop(cam, terrain.getAmplitude());
 
 		// add camera controller
 		camController = new CameraInputController(cam);
-        camController.scrollFactor = -100f;
+        camController.scrollFactor = -200f;
 
 		// input multiplexer to send inputs to GUI and to cam controller
 		InputMultiplexer im = new InputMultiplexer();
@@ -76,6 +79,11 @@ public class TerrainEditor extends ApplicationAdapter {
         modelBatch = new ModelBatch();
 
 		batch = new SpriteBatch();
+
+        ModelBuilder modelBuilder = new ModelBuilder();
+        xyzModel = modelBuilder.createXYZCoordinates(10, new Material(),VertexAttributes.Usage.Position|VertexAttributes.Usage.ColorPacked );
+        xyzInstance =  new ModelInstance(xyzModel);
+
 	}
 
 	@Override
@@ -93,16 +101,17 @@ public class TerrainEditor extends ApplicationAdapter {
 	public void render() {
 		// update camera positioning
 		camController.update();
+        cam.update();
+        Gdx.app.log("cam", cam.position.toString());
+
         float delta = Gdx.graphics.getDeltaTime();
 		time += delta;
-        if(flyCamera)
-		    camLoop.moveCameraAlongSpline(time);
-        else
-            cam.lookAt(0, 0, 0);
+//        if(flyCamera)
+//		    camLoop.moveCameraAlongSpline(time);
+//        else
+//            cam.lookAt(0, 0, 0);
 
-//        float height = terrain.getHeight(cam.position.x, cam.position.z);
-//        if(height + 10f > cam.position.y)
-//            cam.position.y = height + 10f;
+
 
         if(!gui.freezeLoD )
             terrain.update(cam);
@@ -112,11 +121,15 @@ public class TerrainEditor extends ApplicationAdapter {
 
         terrain.render(cam, environment);
 
+        modelBatch.begin(cam);
+        modelBatch.render(xyzInstance);
+        modelBatch.end();
+
         if(showCameraPath)
 		    camLoop.renderPath();
 
         // enable this to demonstrate we can get accurate terrain height by placing blocks on the terrain
-        vegetation.render(cam);
+        //vegetation.render(cam);
 
 		if (showHeightmap) {
 			batch.begin();
@@ -133,6 +146,7 @@ public class TerrainEditor extends ApplicationAdapter {
         gui.dispose();
         vegetation.dispose();
         modelBatch.dispose();
+        xyzModel.dispose();
 	}
 
 
