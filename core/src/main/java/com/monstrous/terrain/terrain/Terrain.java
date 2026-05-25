@@ -19,6 +19,7 @@ public class Terrain implements Disposable {
     private boolean wireFrameMode;
     public float worldSize;   // world size of terrain, centered on the origin
     public HeightMap heightMap;
+    public Texture normalTexture;
     public final Array<TerrainElement> elements = new Array<>();
     private final Array<ModelInstance> instances = new Array<>();
     private final Texture whitePixel;
@@ -40,18 +41,21 @@ public class Terrain implements Disposable {
      *
      * @param clipMapSize size of each LoD level's grid (in vertices). Should be power of two minus one, e.g. 63. Max is 1023.
      * @param numLevels number of LoD levels, i.e. concentric rings
-     * @param tileSize size of a single tile in world units
+     * @param tileSize size of a single tile in world units at finest level of detail
      */
-    public Terrain(HeightMap heightMap, int clipMapSize, int numLevels, float tileSize) {
+    public Terrain(HeightMap heightMap, int clipMapSize, int numLevels, float tileSize, float amplitude) {
 
         double log = Math.log(clipMapSize+1)/Math.log(2.0);
         if(log - (int)log > 0.01f)
             Gdx.app.error("Terrain", "clipMapSize must be 2^N -1");
 
         this.heightMap = heightMap;
-        this.scale = 64;    // hmm...
-        this.amplitude = 15000;   // multiplier for HeighMap [0..1] values
+        this.scale = tileSize;      // height map horizontal scale should match tile size otherwise we are wasting memory
+        this.amplitude = amplitude;   // multiplier for HeighMap [0..1] values
         this.wireFrameMode = false;
+
+        Pixmap normalsPixmap = NormalMapBuilder.generateNormalMap(heightMap, scale, amplitude);
+        normalTexture = new Texture(normalsPixmap);
 
         setClipMapParameters(clipMapSize, numLevels, tileSize);
 
@@ -110,6 +114,12 @@ public class Terrain implements Disposable {
     public void setAmplitude(float amplitude){
         this.amplitude = amplitude;
         terrainShader.setAmplitude(amplitude);
+        // rebuild normals
+        Pixmap normalsPixmap = NormalMapBuilder.generateNormalMap(heightMap, scale, amplitude);
+        normalTexture.dispose();
+        normalTexture = new Texture(normalsPixmap);
+        // use new normal map
+        generateBlocks();
     }
 
     public float getAmplitude() {
@@ -133,6 +143,12 @@ public class Terrain implements Disposable {
     public void setScale(float scale) {
         this.scale = scale;
         terrainShader.setScale(scale);
+        // rebuild normals
+        Pixmap normalsPixmap = NormalMapBuilder.generateNormalMap(heightMap, scale, amplitude);
+        normalTexture.dispose();
+        normalTexture = new Texture(normalsPixmap);
+        // use new normal map
+        generateBlocks();
     }
 
     public float getScale() {
@@ -163,7 +179,7 @@ public class Terrain implements Disposable {
         diffuseTexture.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat);
         Material mat = new Material(
             TextureAttribute.createDiffuse(diffuseTexture),
-            TextureAttribute.createNormal(heightMap.getNormalTexture()),
+            TextureAttribute.createNormal(normalTexture),
             TextureAttribute.createEmissive(heightMap.getHeightMapTexture())    // misuse "emissive texture" for height map
         );
 
@@ -240,20 +256,20 @@ public class Terrain implements Disposable {
 
     private void buildTerrain(){
         elements.clear();
-        float scale = this.tileSize;
+        float tileScale = this.tileSize;
         for(int level = 0; level < this.numLevels; level++) {
-            buildTerrainLevel(level, this.numLevels, scale );
-            scale *= 2f;
+            buildTerrainLevel(level, this.numLevels, tileScale );
+            tileScale *= 2f;
         }
     }
     /** Make one of the terrain levels. level 0 is smallest and finest level, level 1 is half the resolution, etc. */
-    private void buildTerrainLevel(int level, int numLevels, float scale) {
-        addRing(elements, scale);
+    private void buildTerrainLevel(int level, int numLevels, float tileScale) {
+        addRing(elements, tileScale);
         if(level == 0)   // central square grid
-            addCentralSquare(elements, scale);
+            addCentralSquare(elements, tileScale);
         // fill the gap to the next level
         if(level < numLevels -1)
-            addTrim(elements, scale);
+            addTrim(elements, tileScale);
      }
 
 
@@ -382,27 +398,6 @@ public class Terrain implements Disposable {
         elements.add(new TerrainElement(instance, bbox));
     }
 
-    /*
-     * Calculate the normal
-     */
-    private static Vector3 u = new Vector3();
-    private static Vector3 v = new Vector3();
-    private static Vector3 n = new Vector3();
-
-    private static void calcNormal(final Vector3[] vertices, Vector3[] normals, short v0, short v1, short v2) {
-
-        final Vector3 p0 = vertices[v0];
-        final Vector3 p1 = vertices[v1];
-        final Vector3 p2 = vertices[v2];
-
-        v.set(p2).sub(p1);
-        u.set(p0).sub(p1);
-        n.set(v).crs(u).nor();
-
-        normals[v0].add(n);
-        normals[v1].add(n);
-        normals[v2].add(n);
-    }
 
     @Override
     public void dispose() {
@@ -410,6 +405,7 @@ public class Terrain implements Disposable {
         disposeBlocks();
         terrainBatch.dispose();
         whitePixel.dispose();
+        normalTexture.dispose();
     }
 
     private void disposeBlocks() {

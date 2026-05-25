@@ -10,8 +10,10 @@ import com.badlogic.gdx.graphics.VertexAttributes;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g3d.*;
 import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
+import com.badlogic.gdx.graphics.g3d.environment.DirectionalLight;
 import com.badlogic.gdx.graphics.g3d.utils.CameraInputController;
 import com.badlogic.gdx.graphics.g3d.utils.ModelBuilder;
+import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.monstrous.terrain.gui.GUI;
@@ -30,10 +32,13 @@ public class TerrainEditor extends ApplicationAdapter {
     public HeightMap heightMap;
     private Model xyzModel;
     private ModelInstance xyzInstance;
+    private Model capsuleModel;
+    private ModelInstance capsuleInstance;
     private ModelBatch modelBatch;
     private CameraLoop camLoop;
     public Vegetation vegetation;
     private float time;
+    private final Vector3 tmpVec3 = new Vector3();
 
     public boolean showHeightmap = false;
     public boolean showCameraPath = false;
@@ -42,10 +47,10 @@ public class TerrainEditor extends ApplicationAdapter {
 
 	@Override
 	public void create() {
-        heightMap = new HeightMapGenerated(1024);
+        heightMap = new HeightMapGenerated(2048);
         //heightMap = new HeightMapFromFile(Gdx.files.internal("terrain/everest_2048_2048_8bit.png"));
 
-        terrain = new Terrain(heightMap,255, 3, 320f);
+        terrain = new Terrain(heightMap,255, 3, 23f, 450f);
         vegetation = new Vegetation(terrain);
 
         gui = new GUI(this, terrain);
@@ -53,10 +58,11 @@ public class TerrainEditor extends ApplicationAdapter {
 		// create perspective camera
 		cam = new PerspectiveCamera(70, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 
-		cam.position.set(0, 30000, 30000);
+        float worldSize = terrain.heightMap.getSize() * terrain.getScale();
+		cam.position.set(0, 150, 150);
 		cam.lookAt(0, 0, 0);
         // far distance is world distance of diagonal over height map
-		cam.far =  250000; //terrain.heightMap.getSize() * terrain.getScale();
+		cam.far = 100f*worldSize;
 		cam.near = 0.1f;
 		cam.update();
 
@@ -64,7 +70,7 @@ public class TerrainEditor extends ApplicationAdapter {
 
 		// add camera controller
 		camController = new CameraInputController(cam);
-        camController.scrollFactor = -200f;
+        camController.scrollFactor = -50f;
 
 		// input multiplexer to send inputs to GUI and to cam controller
 		InputMultiplexer im = new InputMultiplexer();
@@ -75,6 +81,10 @@ public class TerrainEditor extends ApplicationAdapter {
 		// define some lighting
 		environment = new Environment();
         environment.set(new ColorAttribute(ColorAttribute.Fog, Color.SKY));
+        DirectionalLight light = new DirectionalLight();
+        light.setDirection(0.3f, -0.8f, -0.2f);
+        light.setColor(Color.WHITE);
+        environment.add(light);
 
         modelBatch = new ModelBatch();
 
@@ -84,6 +94,10 @@ public class TerrainEditor extends ApplicationAdapter {
         xyzModel = modelBuilder.createXYZCoordinates(10, new Material(),VertexAttributes.Usage.Position|VertexAttributes.Usage.ColorPacked );
         xyzInstance =  new ModelInstance(xyzModel);
 
+
+        capsuleModel = modelBuilder.createCapsule(50f, 200f, 16,
+            new Material(ColorAttribute.createDiffuse(Color.CYAN)), VertexAttributes.Usage.Position|VertexAttributes.Usage.ColorPacked|VertexAttributes.Usage.Normal);
+        capsuleInstance = new ModelInstance(capsuleModel);
 	}
 
 	@Override
@@ -99,10 +113,14 @@ public class TerrainEditor extends ApplicationAdapter {
 
 	@Override
 	public void render() {
+        setCapsuleHeight(capsuleInstance);
+
 		// update camera positioning
 		camController.update();
         cam.update();
         //Gdx.app.log("cam", cam.position.toString());
+
+
 
         float delta = Gdx.graphics.getDeltaTime();
 		time += delta;
@@ -123,6 +141,7 @@ public class TerrainEditor extends ApplicationAdapter {
 
         modelBatch.begin(cam);
         modelBatch.render(xyzInstance);
+        modelBatch.render(capsuleInstance, environment);
         modelBatch.end();
 
         if(showCameraPath)
@@ -134,11 +153,21 @@ public class TerrainEditor extends ApplicationAdapter {
 		if (showHeightmap) {
 			batch.begin();
 			batch.draw(terrain.getHeightMapTexture(), Gdx.graphics.getWidth()-512, Gdx.graphics.getHeight()-256, 256, 256);
-            batch.draw(terrain.heightMap.getNormalTexture(), Gdx.graphics.getWidth()-256, Gdx.graphics.getHeight()-256, 256, 256);
+            batch.draw(terrain.normalTexture, Gdx.graphics.getWidth()-256, Gdx.graphics.getHeight()-256, 256, 256);
 			batch.end();
 		}
 		gui.render(Gdx.graphics.getDeltaTime());
 	}
+
+    private void setCapsuleHeight(ModelInstance instance){
+        instance.transform.getTranslation(tmpVec3);
+        float y = terrain.getHeight(tmpVec3.x, tmpVec3.z);
+        tmpVec3.y = y +100f;
+        instance.transform.setTranslation(tmpVec3);
+        //camController.target.set(tmpVec3);
+        cam.lookAt(tmpVec3);
+        cam.up.set(Vector3.Y);
+    }
 
 	@Override
 	public void dispose() {
@@ -148,6 +177,7 @@ public class TerrainEditor extends ApplicationAdapter {
         vegetation.dispose();
         modelBatch.dispose();
         xyzModel.dispose();
+        capsuleModel.dispose();
 	}
 
 

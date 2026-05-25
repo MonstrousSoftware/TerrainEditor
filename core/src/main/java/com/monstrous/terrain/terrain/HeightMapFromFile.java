@@ -39,10 +39,6 @@ public class HeightMapFromFile implements HeightMap, Disposable {
         return heightMapTexture;
     }
 
-    @Override
-    public Texture getNormalTexture() {
-        return null;
-    }
 
     @Override
     public int getSize(){
@@ -57,6 +53,12 @@ public class HeightMapFromFile implements HeightMap, Disposable {
         x = Math.min(x, mapSize-1); // clamp to prevent overflow
         z = Math.min(z, mapSize-1);
 
+        int hi = heightData[z*mapSize+x] & 0xFF;    // interpret as unsigned byte
+        return hi/255f;
+    }
+
+    @Override
+    public float getFromIndex(int x, int z) {
         int hi = heightData[z*mapSize+x] & 0xFF;    // interpret as unsigned byte
         return hi/255f;
     }

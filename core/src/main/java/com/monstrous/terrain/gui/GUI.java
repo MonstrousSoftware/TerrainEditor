@@ -173,25 +173,25 @@ public class GUI {
 //        });
 
         // scale
-        scale = terrain.getScale();
-        final Slider scaleSlider = new Slider(0f, 256f, 1f, false, skin);
-        scaleSlider.setAnimateDuration(0.1f);
-        scaleSlider.setValue(scale);
-        scaleSlider.setSize(150, 20);
-        controls.add(new Label("scale    ", skin));
-        controls.add(scaleSlider);
-
-        scaleLabel = new Label(String.valueOf(scale), skin);
-        controls.add(scaleLabel).row();
-        scaleSlider.addListener(new ChangeListener() {
-            @Override
-            public void changed(ChangeEvent event, Actor actor) {
-                scale = scaleSlider.getValue();
-                scaleLabel.setText(String.valueOf(scale));
-                terrain.setScale(scale);
-                main.vegetation.placeVegetation();
-            }
-        });
+//        scale = terrain.getScale();
+//        final Slider scaleSlider = new Slider(0f, 256f, 1f, false, skin);
+//        scaleSlider.setAnimateDuration(0.1f);
+//        scaleSlider.setValue(scale);
+//        scaleSlider.setSize(150, 20);
+//        controls.add(new Label("scale    ", skin));
+//        controls.add(scaleSlider);
+//
+//        scaleLabel = new Label(String.valueOf(scale), skin);
+//        controls.add(scaleLabel).row();
+//        scaleSlider.addListener(new ChangeListener() {
+//            @Override
+//            public void changed(ChangeEvent event, Actor actor) {
+//                scale = scaleSlider.getValue();
+//                scaleLabel.setText(String.valueOf(scale));
+//                terrain.setScale(scale);
+//                main.vegetation.placeVegetation();
+//            }
+//        });
 
         // clipMapSize
 
