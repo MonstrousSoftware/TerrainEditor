@@ -2,6 +2,7 @@ package com.monstrous.terrain.terrain;
 
 
 
+import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.Pixmap;
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.math.Vector3;
@@ -18,7 +19,9 @@ public class HeightMapGenerated implements HeightMap, Disposable {
     private float[][] heightMap;
     private Noise noise;
     private Texture heightMapTexture;
+    private Texture normalTexture;
     private Pixmap pixmap;
+    private Pixmap normalsPixmap;
 
 
     /** Create height map using Perlin noise */
@@ -28,8 +31,14 @@ public class HeightMapGenerated implements HeightMap, Disposable {
         // generate a noise map
         heightMap = noise.generateSmoothedPerlinMap(mapSize, mapSize, 0,0, PERLIN_GRID_SIZE);
         Pixmap pixmap = noise.generatePixmap(heightMap, mapSize);
-        addNormals(pixmap);
         heightMapTexture = new Texture(pixmap);
+
+//        normalsPixmap = new Pixmap(mapSize, mapSize, Pixmap.Format.RGB888);
+//        generateNormalMap(normalsPixmap);
+//
+//        normalTexture = new Texture(normalsPixmap);
+
+        normalTexture = new Texture(Gdx.files.internal("normalMap.png"));
     }
 
     @Override
@@ -50,6 +59,11 @@ public class HeightMapGenerated implements HeightMap, Disposable {
         return heightMapTexture;
     }
 
+    @Override
+    public Texture getNormalTexture(){
+        return normalTexture;
+    }
+
     /** get height at position (wx, wz). Coordinates must be in range [0.0 to 1.0]. */
     public float get(float wx, float wz){
         int x = Math.round(wx * mapSize);
@@ -68,19 +82,21 @@ public class HeightMapGenerated implements HeightMap, Disposable {
             heightMapTexture.dispose();
     }
 
-    /** use heights in alpha channel to calculate normals and store those in RBG channels */
-    public void addNormals(Pixmap pixmap){
+    /** use heights to calculate normals and store those in RBG channels */
+    public void generateNormalMap(Pixmap pixmap){
         final int numVertices = mapSize * mapSize;
         Vector3[] vertices = new Vector3[numVertices];
         Vector3[] normals = new Vector3[numVertices];
         Vector3 pos = new Vector3();
+        float horizontalScale = 64;
+        float amplitude = 15000;
 
         for (int z = 0; z < mapSize; z++) {
             for (int x = 0; x < mapSize; x++) {
                 float wx = x/(float)mapSize;      // scale to [0..1]
                 float wz = z/(float)mapSize;
-                float height =  getFromIndex(x, z);
-                pos.set(x , height, z );
+                float height =  getFromIndex(x, z) * amplitude;
+                pos.set(x*horizontalScale , height, z*horizontalScale );
                 vertices[z * mapSize+ x] = new Vector3(pos);
                 normals[z * mapSize + x] = new Vector3(Vector3.Zero);
             }
@@ -100,10 +116,12 @@ public class HeightMapGenerated implements HeightMap, Disposable {
         bb.clear();
         int idx = 0;
         for(int i = 0; i < mapSize*mapSize; i++){
+            normals[i].nor();
             bb.put(idx++, floatToByte(normals[i].x));
             bb.put(idx++, floatToByte(normals[i].y));
             bb.put(idx++, floatToByte(normals[i].z));
-            bb.put(idx++, floatToByte(vertices[i].y));
+            //idx++;
+            //bb.put(idx++, (byte)255);
         }
         //pixmap.setPixels(bb);
 
@@ -111,7 +129,8 @@ public class HeightMapGenerated implements HeightMap, Disposable {
 
 
     private byte floatToByte(float u){
-        return (byte) (u*255);
+        byte b =  (byte) ((int)(u*128f)&0xFF);
+        return b;
     }
 
     /*

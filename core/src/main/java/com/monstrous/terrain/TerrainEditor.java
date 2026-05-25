@@ -102,7 +102,7 @@ public class TerrainEditor extends ApplicationAdapter {
 		// update camera positioning
 		camController.update();
         cam.update();
-        Gdx.app.log("cam", cam.position.toString());
+        //Gdx.app.log("cam", cam.position.toString());
 
         float delta = Gdx.graphics.getDeltaTime();
 		time += delta;
@@ -133,7 +133,8 @@ public class TerrainEditor extends ApplicationAdapter {
 
 		if (showHeightmap) {
 			batch.begin();
-			batch.draw(terrain.getHeightMapTexture(), Gdx.graphics.getWidth()-256, Gdx.graphics.getHeight()-256, 256, 256);
+			batch.draw(terrain.getHeightMapTexture(), Gdx.graphics.getWidth()-512, Gdx.graphics.getHeight()-256, 256, 256);
+            batch.draw(terrain.heightMap.getNormalTexture(), Gdx.graphics.getWidth()-256, Gdx.graphics.getHeight()-256, 256, 256);
 			batch.end();
 		}
 		gui.render(Gdx.graphics.getDeltaTime());

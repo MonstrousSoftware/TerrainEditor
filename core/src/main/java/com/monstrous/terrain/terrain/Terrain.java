@@ -156,12 +156,14 @@ public class Terrain implements Disposable {
         if(wireFrameMode){
             diffuseTexture = whitePixel;
         } else {
-            diffuseTexture = new Texture(Gdx.files.internal("textures/sand.png"), true);
+            //diffuseTexture = new Texture(Gdx.files.internal("textures/sand.png"), true);
+            diffuseTexture = new Texture(Gdx.files.internal("diffuseMap.png"), true);
         }
         diffuseTexture.setFilter(Texture.TextureFilter.MipMapLinearLinear, Texture.TextureFilter.MipMapLinearNearest);
         diffuseTexture.setWrap(Texture.TextureWrap.Repeat, Texture.TextureWrap.Repeat);
         Material mat = new Material(
             TextureAttribute.createDiffuse(diffuseTexture),
+            TextureAttribute.createNormal(heightMap.getNormalTexture()),
             TextureAttribute.createEmissive(heightMap.getHeightMapTexture())    // misuse "emissive texture" for height map
         );
 

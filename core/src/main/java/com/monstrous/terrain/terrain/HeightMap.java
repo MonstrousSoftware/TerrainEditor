@@ -8,6 +8,8 @@ public interface HeightMap extends Disposable {
     /** returns a 2d texture with the height in the alpha channel. */
     public Texture getHeightMapTexture();
 
+    public Texture getNormalTexture();  // for now, maybe doesn't belong here
+
     /** get height at position (wx, wz). Coordinates must be in range [0.0 to 1.0]. */
     public float get(float wx, float wz);
 

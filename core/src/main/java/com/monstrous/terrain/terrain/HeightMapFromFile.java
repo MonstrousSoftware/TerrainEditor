@@ -40,6 +40,11 @@ public class HeightMapFromFile implements HeightMap, Disposable {
     }
 
     @Override
+    public Texture getNormalTexture() {
+        return null;
+    }
+
+    @Override
     public int getSize(){
         return mapSize;
     }
