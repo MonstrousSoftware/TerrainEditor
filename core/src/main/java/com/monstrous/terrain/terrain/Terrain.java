@@ -50,13 +50,14 @@ public class Terrain implements Disposable {
 
         this.heightMap = heightMap;
         this.scale = tileSize;      // height map horizontal scale should match tile size otherwise we are wasting memory
+        this.tileSize = tileSize;
         this.amplitude = amplitude;   // multiplier for HeighMap [0..1] values
         this.wireFrameMode = false;
 
         Pixmap normalsPixmap = NormalMapBuilder.generateNormalMap(heightMap, scale, amplitude);
         normalTexture = new Texture(normalsPixmap);
 
-        setClipMapParameters(clipMapSize, numLevels, tileSize);
+        setClipMapParameters(clipMapSize, numLevels);
 
         // to create a shader we need a renderable
         // use the renderable from the first terrain element
@@ -83,10 +84,12 @@ public class Terrain implements Disposable {
         this.wireFrameMode = mode;
     }
 
-    public void setClipMapParameters(int clipMapSize, int numLevels, float tileSize) {
+    public boolean getWireFrameMode(){
+        return wireFrameMode;
+    }
 
+    public void setClipMapParameters(int clipMapSize, int numLevels) {
         this.numLevels = numLevels;
-        this.tileSize = tileSize;
         if(clipMapSize != this.clipMapSize) {
             this.clipMapSize = clipMapSize;
             generateBlocks();
@@ -141,6 +144,7 @@ public class Terrain implements Disposable {
 
     public void setScale(float scale) {
         this.scale = scale;
+        this.tileSize = scale;
         terrainShader.setScale(scale);
         // rebuild normals
         Pixmap normalsPixmap = NormalMapBuilder.generateNormalMap(heightMap, scale, amplitude);
@@ -148,6 +152,9 @@ public class Terrain implements Disposable {
         normalTexture = new Texture(normalsPixmap);
         // use new normal map
         generateBlocks();
+        this.worldSize = (clipMapSize-1) * tileSize * (float)Math.pow(2.0, numLevels);
+
+        buildTerrain();
     }
 
     public float getScale() {

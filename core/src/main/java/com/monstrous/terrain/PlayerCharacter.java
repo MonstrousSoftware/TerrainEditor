@@ -12,7 +12,7 @@ import com.badlogic.gdx.utils.Disposable;
 import com.monstrous.terrain.terrain.Terrain;
 
 public class PlayerCharacter extends InputAdapter implements Disposable  {
-    private static final float PLAYER_HEIGHT = 20f;
+    private static final float PLAYER_HEIGHT = 2f;
     private static final float PLAYER_RADIUS = PLAYER_HEIGHT/4f;
     private static final float SPEED = 250f;
     private static final float TURN_SPEED = 2f;

@@ -48,13 +48,13 @@ public class TerrainEditor extends ApplicationAdapter {
         heightMap = new HeightMapGenerated(2048);
         //heightMap = new HeightMapFromFile(Gdx.files.internal("terrain/everest_2048_2048_8bit.png"));
 
-        terrain = new Terrain(heightMap,255, 3, 5f, 500f);
+        terrain = new Terrain(heightMap,255, 4, 1f, 100f);
         vegetation = new Vegetation(terrain);
 
         gui = new GUI(this, terrain);
 
 		// create perspective camera
-		cam = new PerspectiveCamera(70, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
+		cam = new PerspectiveCamera(90, Gdx.graphics.getWidth(), Gdx.graphics.getHeight());
 
         float worldSize = terrain.heightMap.getSize() * terrain.getScale();
         // far distance is world distance of diagonal over height map
@@ -66,12 +66,12 @@ public class TerrainEditor extends ApplicationAdapter {
 
 		// add camera controller
 		camController = new CameraInputController(cam);
-        camController.scrollFactor = -5f;
+        camController.scrollFactor = -1f;
 
         player = new PlayerCharacter(terrain);
         player.adjustPlayerHeight();
         Vector3 p = player.getPosition();
-        cam.position.set(0, p.y + 50, p.z+80);
+        cam.position.set(0, p.y + 5, p.z+10);
         cam.lookAt(p);
         cam.update();
 

@@ -9,20 +9,22 @@ import com.monstrous.terrain.terrain.Terrain;
 public class TerrainWindow extends Window {
     private final Terrain terrain;
     private final TerrainEditor terrainEditor;
-    public boolean showTerrain = true;
-    public boolean showWireFrame = false;
     private Slider radiusSlider;
     private Label radiusLabel;
-    private Label ampLabel;
     private float amplitude;
-    private Label scaleLabel;
     private float scale;
+    private Label ampLabel;
+    private Label scaleLabel;
+    private Label clipMapSizeLabel;
+    private Label levelsLabel;
+
 
 
     public TerrainWindow(Terrain terrain, TerrainEditor terrainEditor, Skin skin) {
         super("Terrain", skin);
         this.terrain = terrain;
         this.terrainEditor = terrainEditor;
+
         build(skin);
     }
 
@@ -44,11 +46,11 @@ public class TerrainWindow extends Window {
 
 
         final CheckBox linesCheckbox = new CheckBox("terrain wire frame", skin);
-        linesCheckbox.setChecked(showWireFrame);
+        linesCheckbox.setChecked(terrain.getWireFrameMode());
         linesCheckbox.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                showWireFrame = linesCheckbox.isChecked();
+                boolean showWireFrame = linesCheckbox.isChecked();
                 terrain.setWireFrameMode(showWireFrame);
                 terrain.generateBlocks();
             }
@@ -58,7 +60,7 @@ public class TerrainWindow extends Window {
 
         // amplitude
         amplitude = terrain.getAmplitude();
-        final Slider ampSlider = new Slider(0f, 25600f, 1f, false, skin);
+        final Slider ampSlider = new Slider(0f, 2000f, 1f, false, skin);
         ampSlider.setAnimateDuration(0.1f);
         ampSlider.setValue(amplitude);
         ampSlider.setSize(150, 20);
@@ -79,9 +81,9 @@ public class TerrainWindow extends Window {
             }
         });
 
-        // scale
+        // scale - world units per height map tile = LOD0 clip map tile
         scale = terrain.getScale();
-        final Slider scaleSlider = new Slider(0f, 256f, 1f, false, skin);
+        final Slider scaleSlider = new Slider(1f, 32f, 1f, false, skin);
         scaleSlider.setAnimateDuration(0.1f);
         scaleSlider.setValue(scale);
         scaleSlider.setSize(150, 20);
@@ -120,6 +122,50 @@ public class TerrainWindow extends Window {
 //            }
 //        });
 
+
+
+        // clipMapSize
+
+        int clipMapSizePower = (int) Math.round(Math.log(terrain.clipMapSize)/Math.log(2));
+        final Slider cmSizeSlider = new Slider(3, 10, 1, false, skin);
+        cmSizeSlider.setAnimateDuration(0.1f);
+        cmSizeSlider.setValue(clipMapSizePower);
+        cmSizeSlider.setSize(150, 20);
+        controls.add(new Label("clip map size    ", skin));
+        controls.add(cmSizeSlider);
+
+        int clipMapSize = Math.round((float)Math.pow(2.0, clipMapSizePower) - 1f);
+        clipMapSizeLabel = new Label(String.valueOf(clipMapSize), skin);
+        controls.add(clipMapSizeLabel).row();
+        cmSizeSlider.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                int clipMapSizePower = (int)cmSizeSlider.getValue();
+                int clipMapSize = Math.round((float)Math.pow(2.0, clipMapSizePower) - 1f);
+                clipMapSizeLabel.setText(String.valueOf(clipMapSize));
+                terrain.setClipMapParameters(clipMapSize, terrain.numLevels);
+            }
+        });
+
+        // numLevels
+
+        final Slider levelsSlider = new Slider(1, 10, 1, false, skin);
+        levelsSlider.setAnimateDuration(0.1f);
+        levelsSlider.setValue(terrain.numLevels);
+        levelsSlider.setSize(150, 20);
+        controls.add(new Label("numLevels    ", skin));
+        controls.add(levelsSlider);
+
+        levelsLabel = new Label(String.valueOf(terrain.numLevels), skin);
+        controls.add(levelsLabel).row();
+        levelsSlider.addListener(new ChangeListener() {
+            @Override
+            public void changed(ChangeEvent event, Actor actor) {
+                int numLevels = (int)levelsSlider.getValue();
+                levelsLabel.setText(String.valueOf(numLevels));
+                terrain.setClipMapParameters(terrain.clipMapSize, numLevels);
+            }
+        });
 
 
 
