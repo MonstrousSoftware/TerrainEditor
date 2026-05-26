@@ -6,18 +6,16 @@ import com.badlogic.gdx.utils.Disposable;
 public interface HeightMap extends Disposable {
 
     /** returns a 2d texture with the height in the alpha channel. */
-    public Texture getHeightMapTexture();
+    Texture getHeightMapTexture();
 
-
-
-    /** get height at position (wx, wz). Coordinates must be in range [0.0 to 1.0]. */
-    public float get(float wx, float wz);
+    /** get height at position (ux, uz). Coordinates must be in range [0.0 to 1.0]. */
+    float get(float ux, float uz);
 
     /** get height at coordinate (x,z)
      *  x and z range from 0 to getSize() */
-    public float getFromIndex(int x, int z);
+    float getFromIndex(int x, int z);
 
-
-    public int getSize();
+    /** get number of values per side */
+    int getSize();
 
 }

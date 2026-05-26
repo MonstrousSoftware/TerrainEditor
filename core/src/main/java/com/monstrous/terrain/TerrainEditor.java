@@ -18,6 +18,7 @@ import com.badlogic.gdx.utils.ScreenUtils;
 import com.monstrous.terrain.gui.GUI;
 import com.monstrous.terrain.terrain.HeightMap;
 import com.monstrous.terrain.terrain.HeightMapGenerated;
+import com.monstrous.terrain.terrain.ScaledHeightMap;
 import com.monstrous.terrain.terrain.Terrain;
 
 public class TerrainEditor extends ApplicationAdapter {
@@ -27,7 +28,7 @@ public class TerrainEditor extends ApplicationAdapter {
 	public SpriteBatch batch;
 	public GUI gui;
     public Terrain terrain;
-    public HeightMap heightMap;
+    public ScaledHeightMap heightMap;
     private Model xyzModel;
     private ModelInstance xyzInstance;
 
@@ -45,10 +46,11 @@ public class TerrainEditor extends ApplicationAdapter {
 
 	@Override
 	public void create() {
-        heightMap = new HeightMapGenerated(2048);
+        HeightMap unitMap = new HeightMapGenerated(2048);
+        heightMap = new ScaledHeightMap(unitMap, 1f, 100f);
         //heightMap = new HeightMapFromFile(Gdx.files.internal("terrain/everest_2048_2048_8bit.png"));
 
-        terrain = new Terrain(heightMap,255, 4, 1f, 100f);
+        terrain = new Terrain(heightMap,255, 4);
         vegetation = new Vegetation(terrain);
 
         gui = new GUI(this, terrain);
@@ -58,11 +60,11 @@ public class TerrainEditor extends ApplicationAdapter {
 
         float worldSize = terrain.heightMap.getSize() * terrain.getScale();
         // far distance is world distance of diagonal over height map
-		cam.far = 100f*worldSize;
+		cam.far = 0.2f * worldSize;
 		cam.near = 0.1f;
 
 
-        camLoop = new CameraLoop(cam, terrain.getAmplitude());
+        camLoop = new CameraLoop(cam, terrain.heightMap.getAmplitude());
 
 		// add camera controller
 		camController = new CameraInputController(cam);
@@ -129,6 +131,7 @@ public class TerrainEditor extends ApplicationAdapter {
         cam.update();
         //Gdx.app.log("cam", cam.position.toString()+" player: "+player.getPosition().toString());
 
+        gui.setStatus(player.getPosition().toString());
 
         if(flyCamera) {
 

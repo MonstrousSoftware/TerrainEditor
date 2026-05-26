@@ -21,6 +21,7 @@ public class GUI {
     private Label fpsLabel;
     private Label instancesLabel;
     private TerrainWindow terrainWindow;
+    private Label statusLine;
 
 
     public GUI (TerrainEditor main, Terrain terrain ) {
@@ -40,10 +41,15 @@ public class GUI {
         Table controls = new Table();
         controls.left();
 
-        controls.add(new Label("FPS: ", skin)).left();
 
+
+        controls.add(new Label("FPS: ", skin)).left();
         fpsLabel = new Label("0", skin);
         controls.add(fpsLabel).left().row();
+
+        statusLine = new Label("STATUS", skin);
+        controls.add(statusLine).left().row();
+
 
         controls.add(new Label("ModelInstances: ", skin)).left();
 
@@ -139,6 +145,7 @@ public class GUI {
 //
 //            }
 //        });
+
 
 
 
@@ -248,7 +255,9 @@ public class GUI {
     }
 
 
-
+    public void setStatus(String text){
+        statusLine.setText(text);
+    }
 
 
 

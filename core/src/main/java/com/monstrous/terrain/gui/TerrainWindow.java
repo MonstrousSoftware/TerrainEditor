@@ -59,7 +59,7 @@ public class TerrainWindow extends Window {
 
 
         // amplitude
-        amplitude = terrain.getAmplitude();
+        amplitude = terrain.heightMap.getAmplitude();
         final Slider ampSlider = new Slider(0f, 2000f, 1f, false, skin);
         ampSlider.setAnimateDuration(0.1f);
         ampSlider.setValue(amplitude);

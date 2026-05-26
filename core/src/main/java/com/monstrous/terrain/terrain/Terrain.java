@@ -14,10 +14,10 @@ public class Terrain implements Disposable {
     private final ModelBatch terrainBatch;
     public int clipMapSize;   // should be 2^N-1, e.g. 63 or 127  = vertices per side
     public int numLevels;     // number of LOD levels
-    public float tileSize;    // size of one grid tile in world units
+    //public float tileSize;    // size of one grid tile in world units
     private boolean wireFrameMode;
     public float worldSize;   // world size of terrain, centered on the origin
-    public HeightMap heightMap;
+    public ScaledHeightMap heightMap;
     public Texture normalTexture;
     public final Array<TerrainElement> elements = new Array<>();
     private final Array<ModelInstance> instances = new Array<>();
@@ -32,29 +32,27 @@ public class Terrain implements Disposable {
     private final Vector3 focus = new Vector3();
     public boolean frustumCulling = true;
     private final TerrainShader terrainShader;
-    private float amplitude;
-    private float scale;        // world scale of one height map tile (not clip map tile)
-    private float altitude = 0;
+    //private float amplitude;
+    private float scale;        // world scale of one clip map tile at highest resolution (LOD 0)
+    //private float altitude = 0;
 
     /** Construct terrain.
      *
      * @param clipMapSize size of each LoD level's grid (in vertices). Should be power of two minus one, e.g. 63. Max is 1023.
      * @param numLevels number of LoD levels, i.e. concentric rings
-     * @param tileSize size of a single tile in world units at finest level of detail
      */
-    public Terrain(HeightMap heightMap, int clipMapSize, int numLevels, float tileSize, float amplitude) {
+    public Terrain(ScaledHeightMap heightMap, int clipMapSize, int numLevels) {
 
         double log = Math.log(clipMapSize+1)/Math.log(2.0);
         if(log - (int)log > 0.01f)
             Gdx.app.error("Terrain", "clipMapSize must be 2^N -1");
 
         this.heightMap = heightMap;
-        this.scale = tileSize;      // height map horizontal scale should match tile size otherwise we are wasting memory
-        this.tileSize = tileSize;
-        this.amplitude = amplitude;   // multiplier for HeighMap [0..1] values
+        this.scale = heightMap.getScale();      // height map horizontal scale should match tile size otherwise we are wasting memory
+        //this.amplitude = amplitude;   // multiplier for HeighMap [0..1] values
         this.wireFrameMode = false;
 
-        Pixmap normalsPixmap = NormalMapBuilder.generateNormalMap(heightMap, scale, amplitude);
+        Pixmap normalsPixmap = NormalMapBuilder.generateNormalMap(heightMap);
         normalTexture = new Texture(normalsPixmap);
 
         setClipMapParameters(clipMapSize, numLevels);
@@ -65,7 +63,7 @@ public class Terrain implements Disposable {
         elements.get(0).modelInstance.getRenderable(renderable);
         renderable.environment = new Environment();     // force lighting so that fog will work
 
-        terrainShader = new TerrainShader(renderable, heightMap.getSize(), scale, amplitude);
+        terrainShader = new TerrainShader(renderable, heightMap.getSize(), scale, heightMap.getAmplitude());
         terrainBatch = new ModelBatch(new DefaultShaderProvider() {
             @Override
             protected Shader createShader(final Renderable renderable) {
@@ -94,46 +92,39 @@ public class Terrain implements Disposable {
             this.clipMapSize = clipMapSize;
             generateBlocks();
         }
-        this.worldSize = (clipMapSize-1) * tileSize * (float)Math.pow(2.0, numLevels);
+        this.worldSize = (clipMapSize-1) * scale * (float)Math.pow(2.0, numLevels);
 
         buildTerrain();
         Gdx.app.log("instances", ""+ elements.size);
     }
 
-
+    public boolean isOffWorld(float worldX, float worldZ){
+        return heightMap.isOffWorld(worldX, worldZ);
+    }
 
     public float getHeight(float worldX, float worldZ){
-        float worldSize = heightMap.getSize() * scale;
-        // scale [-0.5*worldSize .. 0.5*worldSize] to [0 .. 1]
-        float u = (worldX / worldSize) + 0.5f;
-        float v = (worldZ / worldSize) + 0.5f;
-        if(u < 0 || u > 1f || v < 0 || v > 1f)
-            return 0;
-        return amplitude * heightMap.get(u, v);
+        return heightMap.getHeight(worldX, worldZ);
     }
 
     /** set terrain amplitude, i.e. height multiplication factor */
     public void setAmplitude(float amplitude){
-        this.amplitude = amplitude;
+        heightMap.setAmplitude(amplitude);
         terrainShader.setAmplitude(amplitude);
         // rebuild normals
-        Pixmap normalsPixmap = NormalMapBuilder.generateNormalMap(heightMap, scale, amplitude);
+        Pixmap normalsPixmap = NormalMapBuilder.generateNormalMap(heightMap);
         normalTexture.dispose();
         normalTexture = new Texture(normalsPixmap);
         // use new normal map
         generateBlocks();
     }
 
-    public float getAmplitude() {
-        return amplitude;
-    }
 
     public float getAltitude() {
-        return altitude;
+        return heightMap.getAltitude();
     }
 
     public void setAltitude(float altitude) {
-        this.altitude = altitude;
+        heightMap.setAltitude(altitude);
         Vector3 pos = new Vector3();
         for(TerrainElement el : elements){
             el.modelInstance.transform.getTranslation(pos);
@@ -143,16 +134,16 @@ public class Terrain implements Disposable {
     }
 
     public void setScale(float scale) {
+        heightMap.setScale(scale);
         this.scale = scale;
-        this.tileSize = scale;
         terrainShader.setScale(scale);
         // rebuild normals
-        Pixmap normalsPixmap = NormalMapBuilder.generateNormalMap(heightMap, scale, amplitude);
+        Pixmap normalsPixmap = NormalMapBuilder.generateNormalMap(heightMap);
         normalTexture.dispose();
         normalTexture = new Texture(normalsPixmap);
         // use new normal map
         generateBlocks();
-        this.worldSize = (clipMapSize-1) * tileSize * (float)Math.pow(2.0, numLevels);
+        this.worldSize = (clipMapSize-1) * scale * (float)Math.pow(2.0, numLevels);
 
         buildTerrain();
     }
@@ -186,7 +177,7 @@ public class Terrain implements Disposable {
         Material mat = new Material(
             TextureAttribute.createDiffuse(diffuseTexture),
             TextureAttribute.createNormal(normalTexture),
-            TextureAttribute.createEmissive(heightMap.getHeightMapTexture())    // misuse "emissive texture" for height map
+            TextureAttribute.createEmissive(heightMap.heightMap.getHeightMapTexture())    // misuse "emissive texture" for height map
         );
 
         // each NxN level (the central level and surrounding ring levels)
@@ -257,14 +248,14 @@ public class Terrain implements Disposable {
     }
 
     public Texture getHeightMapTexture(){
-        return heightMap.getHeightMapTexture();
+        return heightMap.heightMap.getHeightMapTexture();
     }
 
     // typically called every frame and normally only the grid positions change
     // could update instead of rebuild
     private void buildTerrain(){
         elements.clear();
-        float tileScale = this.tileSize;
+        float tileScale = scale;
         for(int level = 0; level < this.numLevels; level++) {
             buildTerrainLevel(level, this.numLevels, tileScale );
             tileScale *= 2f;
@@ -401,7 +392,7 @@ public class Terrain implements Disposable {
 
         min.set(xo + x * scale, 0, zo + z*scale);
         max.set(min);
-        max.add(scale * (w-1), amplitude, scale*(h-1));
+        max.add(scale * (w-1), heightMap.getAmplitude(), scale*(h-1));
         bbox.set(min, max);
         elements.add(new TerrainElement(instance, bbox));
     }

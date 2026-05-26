@@ -6,8 +6,9 @@ import com.badlogic.gdx.math.Vector3;
 public class NormalMapBuilder {
 
     /** use heights to calculate normals and store those in RGB channels */
-    public static Pixmap generateNormalMap(HeightMap heightMap, float horizontalScale, float amplitude){
+    public static Pixmap generateNormalMap(ScaledHeightMap heightMap){
         int mapSize = heightMap.getSize();
+        float horizontalScale = heightMap.getScale();
         Pixmap normalsPixmap = new Pixmap(mapSize, mapSize, Pixmap.Format.RGB888);
         final int numVertices = mapSize * mapSize;
         Vector3[] vertices = new Vector3[numVertices];
@@ -16,7 +17,7 @@ public class NormalMapBuilder {
 
         for (int z = 0; z < mapSize; z++) {
             for (int x = 0; x < mapSize; x++) {
-                float height =  heightMap.getFromIndex(x, z) * amplitude;
+                float height =  heightMap.getFromIndex(x, z);
                 pos.set(x*horizontalScale , height, z*horizontalScale );
                 vertices[z * mapSize+ x] = new Vector3(pos);
                 normals[z * mapSize + x] = new Vector3(Vector3.Zero);

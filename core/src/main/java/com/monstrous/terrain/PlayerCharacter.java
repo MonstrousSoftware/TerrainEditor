@@ -43,10 +43,13 @@ public class PlayerCharacter extends InputAdapter implements Disposable  {
 
     /** adjust player Y position to the terrain height at player X, Z position */
     public void adjustPlayerHeight(){
+
         capsuleInstance.transform.getTranslation(position);
-        float y = terrain.getHeight(position.z, position.x);
-        position.y = y + PLAYER_HEIGHT/2f;  // origin is at centre of model
-        capsuleInstance.transform.setTranslation(position);
+        if(!terrain.isOffWorld(position.z, position.x)) {
+            float y = terrain.getHeight(position.z, position.x);
+            position.y = y + PLAYER_HEIGHT / 2f;  // origin is at centre of model
+            capsuleInstance.transform.setTranslation(position);
+        }
     }
 
     public Vector3 getPosition(){

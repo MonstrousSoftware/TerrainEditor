@@ -30,7 +30,7 @@ void main() {
     //float heightSample = (UV.x < 0.0 || UV.x > 1.0 || UV.y < 0.0 || UV.y > 1.0) ? 0.0 : texture2D(u_emissiveTexture, UV).r;
     float heightSample = texture2D(u_emissiveTexture, UV).r;
 
-    v_diffuseUV = UV*64.0;
+    v_diffuseUV = UV*128.0;
 
     //vec3 normalVector = normalize(vec3(sin(UV.x*10), 2.0, cos(UV.y*5)));
     vec3 normalVector = normalize(texture2D(u_normalTexture, UV).rgb);
