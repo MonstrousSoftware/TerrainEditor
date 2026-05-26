@@ -10,6 +10,8 @@ import com.badlogic.gdx.math.collision.BoundingBox;
 import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
 
+// todo heightmaps per lod need to follow the player.
+
 public class Terrain implements Disposable {
     private final ModelBatch terrainBatch;
     public int clipMapSize;   // should be 2^N-1, e.g. 63 or 127  = vertices per side

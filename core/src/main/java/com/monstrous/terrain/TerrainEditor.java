@@ -165,6 +165,7 @@ public class TerrainEditor extends ApplicationAdapter {
 
 		if (showHeightmap) {
 			batch.begin();
+
 			batch.draw(terrain.getHeightMapTexture(), Gdx.graphics.getWidth()-512, Gdx.graphics.getHeight()-256, 256, 256);
             batch.draw(terrain.normalTexture, Gdx.graphics.getWidth()-256, Gdx.graphics.getHeight()-256, 256, 256);
 

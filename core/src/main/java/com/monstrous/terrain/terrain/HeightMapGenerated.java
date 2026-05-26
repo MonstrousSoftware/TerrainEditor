@@ -36,8 +36,7 @@ public class HeightMapGenerated implements HeightMap, Disposable {
     /** generate a pixmap from a rectangle of the height map */
     public Pixmap rectToPixmap (float [][] map, int x, int y, int w, int h, int scale) {
 
-        // todo use format Alpha
-        Pixmap pixmap = new Pixmap(w, h, Pixmap.Format.RGBA8888);
+        Pixmap pixmap = new Pixmap(w, h, Pixmap.Format.Alpha);
         int idx = 0;
         for(int ty = y; ty < y+h*scale; ty+=scale) {
             for(int tx = x; tx < x+w*scale; tx+=scale) {
@@ -48,9 +47,6 @@ public class HeightMapGenerated implements HeightMap, Disposable {
                     val = (byte) (map[tx][ty] * 255f);
 
                 pixmap.getPixels().put(idx++, val);
-                pixmap.getPixels().put(idx++, val);
-                pixmap.getPixels().put(idx++, val);
-                pixmap.getPixels().put(idx++, (byte) 255);
             }
         }
         return pixmap;

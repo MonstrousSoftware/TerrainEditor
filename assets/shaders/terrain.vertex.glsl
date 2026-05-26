@@ -28,7 +28,7 @@ void main() {
     // offset by 0.5 because terrain is centred on origin
     vec2 UV = (worldPos.xz / terrainWorldSize) + vec2(0.5);
     //float heightSample = (UV.x < 0.0 || UV.x > 1.0 || UV.y < 0.0 || UV.y > 1.0) ? 0.0 : texture2D(u_emissiveTexture, UV).r;
-    float heightSample = texture2D(u_emissiveTexture, UV).r;
+    float heightSample = texture2D(u_emissiveTexture, UV).a;
 
     v_diffuseUV = UV*128.0;
 
