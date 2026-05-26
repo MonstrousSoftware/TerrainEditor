@@ -3,7 +3,6 @@ package com.monstrous.terrain.terrain;
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.graphics.*;
 import com.badlogic.gdx.graphics.g3d.*;
-import com.badlogic.gdx.graphics.g3d.attributes.ColorAttribute;
 import com.badlogic.gdx.graphics.g3d.attributes.TextureAttribute;
 import com.badlogic.gdx.graphics.g3d.utils.DefaultShaderProvider;
 import com.badlogic.gdx.math.Vector3;
@@ -214,13 +213,13 @@ public class Terrain implements Disposable {
 
 
 
-    private final Vector3 previousCameraPosition = new Vector3();
+    private final Vector3 previousFocusPosition = new Vector3();
 
     /** update terrain to have the highest level of detail near the focal instance and perform frustum clipping */
-    public void update(Camera camera){
-        this.focus.set(camera.position);
+    public void update(Camera camera, Vector3 focus){
+        this.focus.set(focus);
         // rebuild terrain if focal point has moved
-        if(instances.isEmpty() || focus.dst2(previousCameraPosition) > 0.1f)
+        if(instances.isEmpty() || focus.dst2(previousFocusPosition) > 0.1f)
             buildTerrain();
 
         // build list of visible model instances
@@ -237,7 +236,7 @@ public class Terrain implements Disposable {
                 instances.add(element.modelInstance);
         }
 
-        previousCameraPosition.set(focus);
+        previousFocusPosition.set(focus);
     }
 
     public int getNumInstances(){
@@ -254,6 +253,8 @@ public class Terrain implements Disposable {
         return heightMap.getHeightMapTexture();
     }
 
+    // typically called every frame and normally only the grid positions change
+    // could update instead of rebuild
     private void buildTerrain(){
         elements.clear();
         float tileScale = this.tileSize;
