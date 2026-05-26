@@ -39,6 +39,9 @@ public class HeightMapFromFile implements HeightMap, Disposable {
         return heightMapTexture;
     }
 
+    public void getLODTexture(Texture tex, int cx, int cy, int size, int scale){
+
+    }
 
     @Override
     public int getSize(){

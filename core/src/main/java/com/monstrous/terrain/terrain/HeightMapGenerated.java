@@ -20,6 +20,7 @@ public class HeightMapGenerated implements HeightMap, Disposable {
     private Texture heightMapTexture;
     private Pixmap pixmap;
     private Pixmap normalsPixmap;
+    private Texture lod0texture;
 
 
     /** Create height map using Perlin noise */
@@ -28,8 +29,40 @@ public class HeightMapGenerated implements HeightMap, Disposable {
         noise = new Noise();
         // generate a noise map
         heightMap = noise.generateSmoothedPerlinMap(mapSize, mapSize, 0,0, PERLIN_GRID_SIZE);
-        Pixmap pixmap = noise.generatePixmap(heightMap, mapSize);
+        Pixmap pixmap = Noise.generatePixmap(heightMap, mapSize);
         heightMapTexture = new Texture(pixmap);
+    }
+
+    /** generate a pixmap from a rectangle of the height map */
+    public Pixmap rectToPixmap (float [][] map, int x, int y, int w, int h, int scale) {
+
+        // todo use format Alpha
+        Pixmap pixmap = new Pixmap(w, h, Pixmap.Format.RGBA8888);
+        int idx = 0;
+        for(int ty = y; ty < y+h*scale; ty+=scale) {
+            for(int tx = x; tx < x+w*scale; tx+=scale) {
+                byte val;
+                if(tx < 0 || tx >= map.length || ty < 0 || ty >= map[0].length)
+                    val = 0;
+                else
+                    val = (byte) (map[tx][ty] * 255f);
+
+                pixmap.getPixels().put(idx++, val);
+                pixmap.getPixels().put(idx++, val);
+                pixmap.getPixels().put(idx++, val);
+                pixmap.getPixels().put(idx++, (byte) 255);
+            }
+        }
+        return pixmap;
+    }
+
+    /** get a height map for a LOD level
+     * scale is 1, 2, 4, 8, etc.*/
+    public void getLODTexture(Texture tex, int cx, int cy, int sizeInPixels, int scale){
+        int x = cx - scale*sizeInPixels/2;
+        int y = cy - scale*sizeInPixels/2;
+        Pixmap pm = rectToPixmap(heightMap, x, y, sizeInPixels, sizeInPixels, scale);
+        tex.draw(pm, 0, 0);
     }
 
     @Override

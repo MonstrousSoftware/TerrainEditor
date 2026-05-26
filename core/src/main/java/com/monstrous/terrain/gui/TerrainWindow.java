@@ -143,7 +143,7 @@ public class TerrainWindow extends Window {
                 int clipMapSizePower = (int)cmSizeSlider.getValue();
                 int clipMapSize = Math.round((float)Math.pow(2.0, clipMapSizePower) - 1f);
                 clipMapSizeLabel.setText(String.valueOf(clipMapSize));
-                terrain.setClipMapParameters(clipMapSize, terrain.numLevels);
+                terrain.setClipMapSize(clipMapSize);
             }
         });
 
@@ -163,7 +163,7 @@ public class TerrainWindow extends Window {
             public void changed(ChangeEvent event, Actor actor) {
                 int numLevels = (int)levelsSlider.getValue();
                 levelsLabel.setText(String.valueOf(numLevels));
-                terrain.setClipMapParameters(terrain.clipMapSize, numLevels);
+                terrain.setNumLevels(numLevels);
             }
         });
 

@@ -18,4 +18,6 @@ public interface HeightMap extends Disposable {
     /** get number of values per side */
     int getSize();
 
+    void getLODTexture(Texture tex, int cx, int cy, int size, int scale);
+
 }

@@ -46,11 +46,11 @@ public class TerrainEditor extends ApplicationAdapter {
 
 	@Override
 	public void create() {
-        HeightMap unitMap = new HeightMapGenerated(2048);
+        HeightMap unitMap = new HeightMapGenerated(1024);
         heightMap = new ScaledHeightMap(unitMap, 1f, 100f);
         //heightMap = new HeightMapFromFile(Gdx.files.internal("terrain/everest_2048_2048_8bit.png"));
 
-        terrain = new Terrain(heightMap,255, 4);
+        terrain = new Terrain(heightMap,127, 3);
         vegetation = new Vegetation(terrain);
 
         gui = new GUI(this, terrain);
@@ -60,7 +60,9 @@ public class TerrainEditor extends ApplicationAdapter {
 
         float worldSize = terrain.heightMap.getSize() * terrain.getScale();
         // far distance is world distance of diagonal over height map
-		cam.far = 0.2f * worldSize;
+        // actually, the view can be limited to the size of the largest clip map level, because that may be smaller than the height map
+        // the far value also determines where the fog level reaches the maximum
+		cam.far = 10*terrain.clipMapViewSize/2f;
 		cam.near = 0.1f;
 
 
@@ -165,6 +167,9 @@ public class TerrainEditor extends ApplicationAdapter {
 			batch.begin();
 			batch.draw(terrain.getHeightMapTexture(), Gdx.graphics.getWidth()-512, Gdx.graphics.getHeight()-256, 256, 256);
             batch.draw(terrain.normalTexture, Gdx.graphics.getWidth()-256, Gdx.graphics.getHeight()-256, 256, 256);
+
+            for(int i = 0; i < terrain.numLevels; i++)
+                batch.draw(terrain.lods[i], i*(terrain.clipMapSize+10), 0);
 			batch.end();
 		}
 		gui.render(Gdx.graphics.getDeltaTime());

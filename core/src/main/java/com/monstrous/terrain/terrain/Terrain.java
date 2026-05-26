@@ -16,7 +16,7 @@ public class Terrain implements Disposable {
     public int numLevels;     // number of LOD levels
     //public float tileSize;    // size of one grid tile in world units
     private boolean wireFrameMode;
-    public float worldSize;   // world size of terrain, centered on the origin
+    public float clipMapViewSize;   // world size of clipmapping view, i.e. of largest ring (height map may be larger)
     public ScaledHeightMap heightMap;
     public Texture normalTexture;
     public final Array<TerrainElement> elements = new Array<>();
@@ -35,6 +35,7 @@ public class Terrain implements Disposable {
     //private float amplitude;
     private float scale;        // world scale of one clip map tile at highest resolution (LOD 0)
     //private float altitude = 0;
+    public Texture[] lods;
 
     /** Construct terrain.
      *
@@ -43,19 +44,27 @@ public class Terrain implements Disposable {
      */
     public Terrain(ScaledHeightMap heightMap, int clipMapSize, int numLevels) {
 
+        this.clipMapSize = clipMapSize;
+        this.numLevels = numLevels;
+        this.scale = heightMap.getScale();      // height map horizontal scale should match tile size otherwise we are wasting memory
+        this.clipMapViewSize = (clipMapSize-1) * scale * (float)Math.pow(2.0, numLevels);
+
         double log = Math.log(clipMapSize+1)/Math.log(2.0);
         if(log - (int)log > 0.01f)
             Gdx.app.error("Terrain", "clipMapSize must be 2^N -1");
 
         this.heightMap = heightMap;
-        this.scale = heightMap.getScale();      // height map horizontal scale should match tile size otherwise we are wasting memory
+
         //this.amplitude = amplitude;   // multiplier for HeighMap [0..1] values
         this.wireFrameMode = false;
 
         Pixmap normalsPixmap = NormalMapBuilder.generateNormalMap(heightMap);
         normalTexture = new Texture(normalsPixmap);
 
-        setClipMapParameters(clipMapSize, numLevels);
+
+        generateBlocks();
+        setNumLevels(numLevels);
+        Gdx.app.log("instances", ""+ elements.size);
 
         // to create a shader we need a renderable
         // use the renderable from the first terrain element
@@ -73,7 +82,7 @@ public class Terrain implements Disposable {
 
         // fallback texture for wireframe rendering
         Pixmap pm = new Pixmap(1, 1, Pixmap.Format.RGBA8888);
-        pm.setColor(Color.WHITE);
+        pm.setColor(Color.BLACK);
         pm.fill();
         whitePixel = new Texture(pm);
     }
@@ -86,13 +95,33 @@ public class Terrain implements Disposable {
         return wireFrameMode;
     }
 
-    public void setClipMapParameters(int clipMapSize, int numLevels) {
-        this.numLevels = numLevels;
+    public void setClipMapSize(int clipMapSize) {
         if(clipMapSize != this.clipMapSize) {
             this.clipMapSize = clipMapSize;
             generateBlocks();
         }
-        this.worldSize = (clipMapSize-1) * scale * (float)Math.pow(2.0, numLevels);
+        this.clipMapViewSize = (clipMapSize-1) * scale * (float)Math.pow(2.0, numLevels);
+
+        buildTerrain();
+        Gdx.app.log("instances", ""+ elements.size);
+    }
+
+    public void setNumLevels(int numLevels) {
+        this.numLevels = numLevels;
+        this.clipMapViewSize = (clipMapSize-1) * scale * (float)Math.pow(2.0, numLevels);
+
+        if(lods != null)
+            for(Texture t : lods)
+                t.dispose();
+
+        lods = new Texture[numLevels];
+        int scl = 1;
+        for(int lod = 0; lod < numLevels; lod++) {
+            lods[lod] = new Texture(clipMapSize + 1, clipMapSize + 1, Pixmap.Format.RGBA8888);
+
+            heightMap.heightMap.getLODTexture(lods[lod], heightMap.getSize()/2, heightMap.getSize()/2, clipMapSize + 1, scl);
+            scl *= 2;
+        }
 
         buildTerrain();
         Gdx.app.log("instances", ""+ elements.size);
@@ -143,7 +172,7 @@ public class Terrain implements Disposable {
         normalTexture = new Texture(normalsPixmap);
         // use new normal map
         generateBlocks();
-        this.worldSize = (clipMapSize-1) * scale * (float)Math.pow(2.0, numLevels);
+        this.clipMapViewSize = (clipMapSize-1) * scale * (float)Math.pow(2.0, numLevels);
 
         buildTerrain();
     }
@@ -219,6 +248,10 @@ public class Terrain implements Disposable {
         // rebuild terrain if focal point has moved
         if(instances.isEmpty() || focus.dst2(previousFocusPosition) > 0.1f)
             buildTerrain();
+
+//        if(focus.dst2(previousFocusPosition) > 0.1f){
+//
+//        }
 
         // build list of visible model instances
         // (camera may be in same position but rotated)
@@ -405,6 +438,9 @@ public class Terrain implements Disposable {
         terrainBatch.dispose();
         whitePixel.dispose();
         normalTexture.dispose();
+        if(lods != null)
+            for(Texture t : lods)
+                t.dispose();
     }
 
     private void disposeBlocks() {
