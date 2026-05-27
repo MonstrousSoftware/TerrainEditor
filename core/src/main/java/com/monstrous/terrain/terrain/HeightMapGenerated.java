@@ -29,14 +29,13 @@ public class HeightMapGenerated implements HeightMap, Disposable {
         noise = new Noise();
         // generate a noise map
         heightMap = noise.generateSmoothedPerlinMap(mapSize, mapSize, 0,0, PERLIN_GRID_SIZE);
-        Pixmap pixmap = Noise.generatePixmap(heightMap, mapSize);
-        heightMapTexture = new Texture(pixmap);
+        Pixmap pm = Noise.generatePixmap(heightMap, mapSize);
+        heightMapTexture = new Texture(pm);
     }
 
     /** generate a pixmap from a rectangle of the height map */
-    public Pixmap rectToPixmap (float [][] map, int x, int y, int w, int h, int scale) {
+    public void rectToPixmap (Pixmap pixmap, float [][] map, int x, int y, int w, int h, int scale) {
 
-        Pixmap pixmap = new Pixmap(w, h, Pixmap.Format.Alpha);
         int idx = 0;
         for(int ty = y; ty < y+h*scale; ty+=scale) {
             for(int tx = x; tx < x+w*scale; tx+=scale) {
@@ -49,16 +48,24 @@ public class HeightMapGenerated implements HeightMap, Disposable {
                 pixmap.getPixels().put(idx++, val);
             }
         }
-        return pixmap;
     }
 
+
     /** get a height map for a LOD level
+     * cx, cy integer coordinates
      * scale is 1, 2, 4, 8, etc.*/
     public void getLODTexture(Texture tex, int cx, int cy, int sizeInPixels, int scale){
+        if(pixmap != null && pixmap.getWidth() != sizeInPixels){    // resize
+            pixmap.dispose();
+            pixmap = null;
+        }
+        if(pixmap == null)  // lazy init
+            pixmap = new Pixmap(sizeInPixels, sizeInPixels, Pixmap.Format.Alpha);
+
         int x = cx - scale*sizeInPixels/2;
         int y = cy - scale*sizeInPixels/2;
-        Pixmap pm = rectToPixmap(heightMap, x, y, sizeInPixels, sizeInPixels, scale);
-        tex.draw(pm, 0, 0);
+        rectToPixmap(pixmap, heightMap, x, y, sizeInPixels, sizeInPixels, scale);
+        tex.draw(pixmap, 0, 0);
     }
 
     @Override
@@ -70,7 +77,7 @@ public class HeightMapGenerated implements HeightMap, Disposable {
         // create on demand
         if(heightMapTexture == null){
             // copy to a texture (for debug)
-            pixmap = noise.generatePixmap(heightMap, mapSize);
+            pixmap = Noise.generatePixmap(heightMap, mapSize);
 
             heightMapTexture = new Texture(pixmap);
             heightMapTexture.setWrap(Texture.TextureWrap.ClampToEdge, Texture.TextureWrap.ClampToEdge);
@@ -82,8 +89,8 @@ public class HeightMapGenerated implements HeightMap, Disposable {
 
     /** get height at position (wx, wz). Coordinates must be in range [0.0 to 1.0]. */
     public float get(float wx, float wz){
-        int x = Math.round(wx * mapSize);
-        int z = Math.round(wz * mapSize);
+        int x = Math.round(wx * (mapSize-1));
+        int z = Math.round(wz * (mapSize-1));
 
         return heightMap[z][x];
     }

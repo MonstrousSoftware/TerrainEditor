@@ -11,6 +11,8 @@ import com.badlogic.gdx.utils.Array;
 import com.badlogic.gdx.utils.Disposable;
 
 // todo heightmaps per lod need to follow the player.
+// todo adapt also normal maps
+// todo shader needs to use heightmaps per lod
 
 public class Terrain implements Disposable {
     private final ModelBatch terrainBatch;
@@ -117,16 +119,27 @@ public class Terrain implements Disposable {
                 t.dispose();
 
         lods = new Texture[numLevels];
-        int scl = 1;
         for(int lod = 0; lod < numLevels; lod++) {
-            lods[lod] = new Texture(clipMapSize + 1, clipMapSize + 1, Pixmap.Format.RGBA8888);
-
-            heightMap.heightMap.getLODTexture(lods[lod], heightMap.getSize()/2, heightMap.getSize()/2, clipMapSize + 1, scl);
-            scl *= 2;
+            lods[lod] = new Texture(clipMapSize + 1, clipMapSize + 1, Pixmap.Format.Alpha);
         }
+        updateLODTextures(0,0); //heightMap.getSize()/2, heightMap.getSize()/2);
 
         buildTerrain();
         Gdx.app.log("instances", ""+ elements.size);
+    }
+
+    public void updateLODTextures(float worldX, float worldZ){
+        float worldSize = heightMap.getSize() * scale;
+        // scale [-0.5*worldSize .. 0.5*worldSize] to [0 .. 1]
+        float u = (worldX / worldSize) + 0.5f;
+        float v = (worldZ / worldSize) + 0.5f;
+        int cx = (int)(heightMap.getSize() * u);
+        int cy = (int)(heightMap.getSize() * v);
+        int scl = 1;
+        for(int lod = 0; lod < numLevels; lod++) {
+            heightMap.heightMap.getLODTexture(lods[lod], cx, cy, clipMapSize + 1, scl);
+            scl *= 2;
+        }
     }
 
     public boolean isOffWorld(float worldX, float worldZ){
@@ -250,6 +263,8 @@ public class Terrain implements Disposable {
         // rebuild terrain if focal point has moved
         if(instances.isEmpty() || focus.dst2(previousFocusPosition) > 0.1f)
             buildTerrain();
+
+        updateLODTextures(focus.x, focus.z);
 
 //        if(focus.dst2(previousFocusPosition) > 0.1f){
 //
